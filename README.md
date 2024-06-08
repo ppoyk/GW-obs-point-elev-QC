@@ -1,0 +1,2 @@
+# GW-obs-point-elev-QC
+ This code is a part of the quality control work done to the metadata of physical structures the hydrological groundwater monitoring network of Syke. It utilises precise field measurements of the structures, as well as national elevation data to verify the current coordinate and elevation values of the structures in the database. The elevation source confidence intervals are also evaluated based on said measurements.
