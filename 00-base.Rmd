@@ -154,10 +154,21 @@ if (USERCONF$pakota_lataus_putkitiedot || !file.exists(dir_putket)) {
 
 ### Sama paikoille (ei rajattu pelkkiin putkiin)
 # 1st load location type table (required for setting factor levels if local file is used)
-PaikkaTyyppi <- DBI::dbGetQuery(
+PaikkaTyyppi_path <- file.path(D$data,"PaikkaTyyppi.csv") # Define path
+if (USERCONF$pakota_lataus_paikkatiedot || file.exists(PaikkaTyyppi_path)) {
+    PaikkaTyyppi <- read.csv(PaikkaTyyppi_path) # Read from file if found or forced
+} else {
+  # If file not found, query from db, and save to disk for future use.
+  PaikkaTyyppi <- DBI::dbGetQuery(
     .connect_db(D$secrets),
     p(readLines(f.path(D$secrets,"SQL","hae_paikat#PaikkaTyyppi.txt")),#Query from file
       collapse = " "))
+  data.table::fwrite(PaikkaTyyppi,
+                     file = file.path(PaikkaTyyppi_path),
+                     na = NA, bom = T)
+}
+
+
 
 dir_paikat <- file.path(D$data, "kaikki_paikat.csv")
 if (USERCONF$pakota_lataus_paikkatiedot || !file.exists(dir_paikat)) {
