@@ -20,8 +20,7 @@ USERCONF <- list(
   # Asetetaan marginaali ladattavalle 2x2m maankorkeusaineistolle metreinä.
   # Käytetään aineiston latauksen bounding box määrittelyssä
   loc_dtm_margin = 75, # Putkikohtaiselle aineistolle (laajat asemat)
-  marg_2m_asemille = 75, # Asemakohtaiselle aineistolle
-  
+
   ajo_las_alustalla = F, # Is program executed on the remote LAS processing platform?
   
   ### 5p/m2 laserkeilausaineiston käsittely
