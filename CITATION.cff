@@ -1,0 +1,11 @@
+cff-version: 1.2.0
+message: "If you use this software or utilise parts of its code, please cite it as below."
+authors:
+- family-names: "Pöykkö"
+  given-names: "Pietari"
+orcid: https://orcid.org/0009-0000-1214-5336
+title: "GW-obs-point-elev-QC: v1.0.0 for thesis"
+version: v1.0.0
+doi: 10.5281/zenodo.11535494
+date-released: 2024-06-09
+url: "https://github.com/ppoyk/GW-obs-point-elev-QC"
