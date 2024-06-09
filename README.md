@@ -15,6 +15,7 @@ The funding for this project has come from [Maa- ja vesitekniikan tuki ry](https
 ---
 ## Running the script
 The core of the script is in `00-base.Rmd`, which can be run using [RStudio](https://posit.co/download/rstudio-desktop/). Supporting functions and sub-tasks of the script are located in the folder `/R/`.
+
 For optimal functionality, the code requires internet access, access to the groundwater database of the Finnish Environment Institute, as well as access to the full lidar dataset.
 Most of the source data used for this project cannot be provided due to restricted access, but some of it is openly available from the respective sources.
 The dependencies of the project are listed at the start of the code, as well as in DESCRIPTION. The required missing CRAN packages should get installed automatically if the script is run.
@@ -22,6 +23,7 @@ The dependencies of the project are listed at the start of the code, as well as 
 ---
 ## Notes
 The language used in this code project changes between Finnish and English. Originally, the thesis and the project was planned to be entirely in Finnish, but the thesis was decided to be written in English. The code has not been fully translated due to time constraints.
+
 The code has been created for data-analysis, where the results will be primarily utilised once, by uploading the proposed new elevations to the database.
 Thus, streamlining and optimising the code has not been the priority, although some performance re-writes were required to speed up the process of creating DTMs from the lidar data.
 
