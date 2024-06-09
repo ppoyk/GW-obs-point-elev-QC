@@ -1,0 +1,1518 @@
+---
+title: "00-base"
+author: "Pietari Pöykkö"
+date: "`r Sys.Date()`"
+output: 
+  pdf_document: 
+    toc: yes
+---
+R Markdown file
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+Elevation system N2000
+Coordinate system ETRS-TM35FIN
+
+```{r kaynnistys, echo=F, results='hide'}
+# Kirjastojen asennus hoituu {renv} kautta
+# Tarvittaessa renv::init()
+
+# Tuodaan ohjelman käyttäytymistä määrittävät käyttäjän asetukset ympäristöön
+source("USERCONF.R")
+
+# Juurikansion määrittäminen muuttujaan
+if (!requireNamespace("here", quietly = TRUE)) {
+  warning("Package \"here\" must be installed to execute.", call. = FALSE)
+  install.packages("here", destdir = "libs", lib = "libs")
+}
+here::i_am("00-base.Rmd")
+root <- here::here()
+
+
+# Listaa tarvittavat paketit
+pkgs <- c("rmarkdown","ggplot2","ggstatsplot","ggrepel","ggridges","here",
+          "lidR","progress","rlas","gstat","sf","terra","dplyr","stringr",
+          "data.table","yaml","rnaturalearth","rnaturalearthdata","rlang",
+          "DescTools","xfun","here","profvis","vctrs","scales","caret",
+          "knitr","remotes","DBI","rstudioapi","assertthat","tidyr",
+          "future.apply","odbc","httr2","jsonlite","broom","this.path")
+
+# Asenna paketit tarvittaessa
+if (curl::has_internet()) {
+  utils::install.packages(pkgs[!(pkgs %in% installed.packages(noCache = T))],
+                          dependencies = TRUE)
+  if (!"rnaturalearthhires" %in% installed.packages()) {
+    remotes::install_github("ropensci/rnaturalearthhires")
+  }}
+
+# Ainoat paketit jotka aktivoidaan kokonaan käytön helpottamiseksi
+# (muita käytetään eksplisiittisesti, paketti::funktio)
+library("ggplot2"); library("ggridges") # More compact plot code
+library("future") # To use %seed%
+library("DescTools") # To use range operators (e.g. `%[]%`)
+
+for (pkg in pkgs) {
+  tryCatch(loadNamespace(pkg),
+           error = function(cond){
+             warning("Conflict loading namespace ",pkg," from local library:\n",
+                     cond,"Package ",pkg," not loaded from local library")})
+}
+rm(pkg)
+
+
+# Aseta muuttujat pääkansioiden poluille
+# (tallennetaan yhteen muuttujaan jotta ympäristö pysyy siistinä, D = directory)
+D <- list(
+  data     = file.path(root, "aineisto"),
+  koodi    = file.path(root, "R"),
+  tulokset = file.path(root, "output"),
+  doc      = file.path(root, "doc"),
+  # Usein käytetyt alakansiot
+  secrets  = file.path(root, "aineisto", "secrets")
+)
+
+# Muut tärkeä muuttujat:
+# Koordinaattireferenssisysteemin (crs) koodi, joka käytössä Suomessa
+# ja käytettävissä aineistoissa, EPSG:3067 = ETRS-TM35FIN 
+crs = 3067 
+
+# Aja funktiot kansiosta ympäristöön
+files_sources <- list.files(
+  file.path(D$koodi,"funktiot"), full.names = T, recursive = T)
+invisible(sapply(files_sources, source)) # Aja funktioiden tiedostot
+rm(files_sources) # Siivous
+
+# Tarkistetaan annetut kansiot, jotta perusrakenne olisi oikein
+# (Myöhemmin asioita tallennetaan myös näiden alakansioihin, joissa tarkistukset pitää tehdä erikseen)
+# (Vaimennetaan listan läpikäynnin turhat tekstit)
+invisible(capture.output(lapply(D, check_dir, tilde = root, ensure = T)))
+
+# Tarkistetaan myös vaaditut kirjautumistiedot jne.
+check_db_info(D$secrets,"db_info.yaml")
+check_key(D$secrets, "MML_avain.txt", verbose = T)
+
+rm(pkgs)
+```
+
+
+
+```{r asemien-lataaminen-pohjavesitietokannasta}
+# Ladataan asemataulu tietokannasta, jos sitä ei löydy levyltä oletetusta
+# sijainnista, tai jos käyttäjä määrittänyt niin.
+dir_asemataulu <- file.path(D$data, "asemataulu.csv")
+if (USERCONF$pakota_lataus_asematiedot || !file.exists(dir_asemataulu)) {
+  asemataulu <- hae_asematiedot(savepath = dir_asemataulu, tstamp = TRUE)
+  cat("Asematiedot haettu suoraan tietokannasta\n")
+  # Jos asemat ladataan uusiksi, tulee myös putket päivittää
+  USERCONF$pakota_lataus_putkitiedot <- TRUE 
+} else {
+  # Muussa tapauksessa luetaan levyllä oleva taulu
+  asemataulu <- read.csv(
+    dir_asemataulu,
+    colClasses = c(asema_id = "numeric",
+                   tunnus = "character", nimi = "character"),
+    na.strings = c("","NA"),
+    fileEncoding = "UTF-8-BOM")
+  cat("Asemataulu ladattu tiedostosta levyltä:",dir_asemataulu,"\n")
+  USERCONF$pakota_lataus_asematiedot <- FALSE
+}
+rm(dir_asemataulu)
+
+# Draw all monitoring stations, before dropping ones with no pipes
+as_kartta <- piirra_asemakartta(asemataulu,
+  file.path(D$tulokset,"all_stations_map.png"),
+  main = paste(
+    "All groundwater-related hydrological\nmonitoring stations, n =",nrow(asemataulu)))
+
+```
+
+```{r paikkojen-lataaminen-pohjavesitietokannasta}
+# Ladataan paikkojen ja putkien tiedot vasta asemien laajuuden laskemisen
+# jälkeen, koska tällöin pudotetaan pois asemat joilla ei ole yhtään havaintoputkea
+
+### Tehdään putkille sama kun asemille ladattaessa
+dir_putket <- file.path(D$data, "kaikki_putket.csv")
+if (USERCONF$pakota_lataus_putkitiedot || !file.exists(dir_putket)) {
+  # Haetaan putket kaikille asemataulun asemille
+  kaikki_putket <- hae_putket(asemataulu[["asema_id"]], savepath = dir_putket)
+  cat("Putkien tiedot haettu suoraan tietokannasta")
+  # Päivitetään putkien latauksen lippu, koska putket päivitettiin
+  USERCONF$pakota_lataus_putkitiedot <- TRUE
+} else {
+  kaikki_putket <- read.csv(
+    dir_putket,
+    colClasses = c(asema_tunnus = "character", asema_nimi = "character",
+                   tunnus = "character",
+                   asema_id = "numeric", putki_id = "numeric"),
+    na.strings = c("","NA"),
+    fileEncoding = "UTF-8-BOM")
+  cat("Putkien tiedot ladattu tiedostosta levyltä:",dir_putket,"\n")
+  USERCONF$pakota_lataus_putkitiedot <- FALSE
+}
+
+### Sama paikoille (ei rajattu pelkkiin putkiin)
+# 1st load location type table (required for setting factor levels if local file is used)
+PaikkaTyyppi <- DBI::dbGetQuery(
+    .connect_db(D$secrets),
+    p(readLines(f.path(D$secrets,"SQL","hae_paikat#PaikkaTyyppi.txt")),#Query from file
+      collapse = " "))
+
+dir_paikat <- file.path(D$data, "kaikki_paikat.csv")
+if (USERCONF$pakota_lataus_paikkatiedot || !file.exists(dir_paikat)) {
+  # Haetaan putket kaikille asemataulun asemille
+  kaikki_paikat <- hae_paikat(asema_id_lista = asemataulu[["asema_id"]],
+                              savepath = dir_paikat, tstamp = T)
+  cat("Havaintopaikkojen tiedot haettu suoraan tietokannasta")
+  # Päivitetään paikkojen latauksen lippu, koska paikat päivitettiin
+  USERCONF$pakota_lataus_paikkatiedot <- TRUE
+} else {
+  kaikki_paikat <- read.csv(
+    dir_paikat,
+    colClasses = c(paikka_id = "numeric", asema_id = "numeric",
+                   asema_tunnus = "character", asema_nimi = "character",
+                   tunnus = "character"),
+    na.strings = c("","NA"),
+    fileEncoding = "UTF-8-BOM")
+  
+  # Convert the loaded structure type col into factor, as when loading from db.
+  kaikki_paikat$PaikkaTyyppi_Id <- as.factor(kaikki_paikat$PaikkaTyyppi_Id)
+  levels(kaikki_paikat$PaikkaTyyppi_Id) <- split(PaikkaTyyppi$PaikkaTyyppi_Id,PaikkaTyyppi$Selite)
+  
+  cat("Havaintopaikkojen tiedot ladattu tiedostosta levyltä:",dir_paikat,"\n")
+  USERCONF$pakota_lataus_paikkatiedot <- FALSE
+}
+rm(dir_putket,dir_paikat)
+```
+
+```{r asemien-laajuuden-laskeminen}
+# Asemien laajuuden laskenta. Pudottaa asemista myös pois sellaiset joilla ei
+# ole yhtään havaintoputkia, koska ensisijaisesti kiinnostuttu niistä.
+source(file.path(D$koodi, "laske_asemien_laajuus.R"))
+
+# Jos asema mahtuu <100km2 alueelle, voitaisiin KM2 aineisto ladata asemalle yhtenäisenä.
+# (eli laajuuden raja (puolikas sivun mitta) < 5000m)
+# KM2 kuitenkin ladataan paikkakohtaisesti, joten laajuudelle ei ole käyttöä
+
+
+# Draw monitoring stations which have monitoring pipes
+piirra_asemakartta(asemataulu, file.path(D$tulokset,"stations_w_pipes_map.png"),
+                   main = paste(
+                     "Hydrological monitoring stations\nwith pipes, n =",
+                     nrow(asemataulu)))
+# Add remaining stations to old plot with different color
+as_kartta + geom_point(data = data.frame(asemataulu$lon, asemataulu$lat),
+               mapping = aes(x = asemataulu$lon, y = asemataulu$lat, color="points"),
+               shape = "circle",
+               colour = "green4",
+               size = 3,
+               alpha = 0.6) +
+  ggtitle(paste("Hydrological monitoring stations"))
+  ggsave(file.path(D$tulokset,"stations_combined_map.png"),
+         height = 13, width = 8, units = "cm")
+rm(as_kartta) # Cleanup
+```
+
+
+
+```{r ref-mittausten-tarkkuuden-arviointi}
+# Load national reference points (if not yet loaded)
+if (!exists("kp", inherits = F)) source(file.path(D$koodi,"tuo_kiintopisteet.R"))
+
+# Import raw measured point data
+ref_raw <- readxl::read_excel(
+  file.path(D$data,"ref_mittaukset/ref_mittaukset.xlsx"),
+  sheet = "raw_data", skip = 1)
+# Calculate corrected value if actual and reported antenna pole lengths differ
+ref_raw[["Elev"]] <-
+  ref_raw$Elev_raw + (ref_raw$dev_varsi - ref_raw$tod_varsi)
+
+
+# Calculate differences to some of the national accurate reference points to 
+# ensure correct functioning of the device.
+source(file.path(D$koodi, "vertaa_mittauksia_kiintopisteisiin.R"))
+
+```
+
+```{r ref-mittausten-kasittely-ja-DTM-arviointi}
+
+# Load and handle reference measurements from monitoring pipes
+source(file.path(D$koodi, "tuo_&_kasittele_ref_putkimittaukset.R"))
+
+# Plot a map on which four stations the reference measurement campaign was conducted
+save2(points_on_fin(ref_mittaukset$East, ref_mittaukset$North , main=NULL),
+      f.path(D$tulokset,"ref_mittaukset","ref_measurement_map"),wid=8, hei=12)
+
+
+# Calculate the differences between various DTMs and own GPS measurements to
+# evaluate which DTM to use as the main source of ground elevation
+source(file.path(D$koodi, "vertaa_DTMia_mittauksiin.R"))
+
+```
+
+
+
+```{r ELYjen-kenttamittausten-tuonti-ja-liittaminen}
+# Tuodaan ELYjen kenttämittausten manuaalisesti koostettu taulukko.
+# HUOM! Kaikilta asemilta ei ole tehty tätä kartoituskierrosta
+
+# Jos löytyy taulun versio, joka on jo kertaalleen ajettu tällä koodilla läpi, käytetään sitä.
+# (Voidaan myös pakottaa ajamaan paikka_id kohdennus uudestaan)
+if (USERCONF$DEV$pakota_kenttamittausten_id_kohdennus) {
+  message("ELYjen kenttämittausten tietoihin haetaan paikka ID:t uudelleen käyttäjän määrittelemänä")
+  source(file.path(D$koodi, "kirjaa_paikkaidt_kenttamittauksiin.R"))
+  # Luo tiedoston seuraavaa vaatimusta varten, eli ei pitäisi koskaan
+  # vahingossa ajaa tätä kahdesti (alla oleva else)
+}
+
+if (file.exists(file.path(D$data, "kenttamittaukset+idt.csv"))) {
+  kenttamittaukset <- data.table::fread(
+  file = file.path(D$data, "kenttamittaukset+idt.csv"),
+  header = TRUE,
+  na.strings = c("NA", ""), blank.lines.skip = TRUE,
+  keepLeadingZeros = TRUE,
+  encoding = "UTF-8")
+} else {
+  # Jos valmista tiedostoa ei löydy, otetaan raakaversio josta paikka_id:t puuttuu,
+  # ja ajetaan skriptin läpi, joka luo koodia varten muotoillun version.
+  # Koodi lisää kenttämittauksiin paikka_id:t yhdistelemällä tietokannan tietoja.
+  # Tätä käytetään lähinnä kehitysvaiheessa, jotta saadaan yhdistettyä
+  # havaintopaikkojen paikka_id:t ELYjen mittauksiin, ja havaitaan mahd ongelmat.
+  # Kun id:t on kaikilla paikoille joilta on kenttämittauksia, ne tallennetaan
+  # yllä if-kohdassa luettavaan kenttamittaukset+idt.csv-tiedostoon
+  source(file.path(D$koodi, "kirjaa_paikkaidt_kenttamittauksiin.R"))
+}
+
+
+```
+
+```{r pudota-huonot-ELY-mittaukset}
+# If certain measurements done by ELYs are not deemed to correct, they are
+# discarded here. This is based on background investigations outside of this
+# project, and are coded manually.
+#Yli 50m muutos jota ei vielä ole viety tietokantaan, ja siirtymän ei ole todettu olevan OK.
+huonot <- c(9985, 7836, 7851, 7856,
+            7811, 56597, 43975, 7727, 7725, 43463)
+# Drop bad
+kenttamittaukset <- kenttamittaukset[!kenttamittaukset$paikka_id %in% huonot, ]
+rm(huonot)
+```
+
+```{r ELY-mittausten-taydennys-omilla-mittauksilla}
+#### Supplement ELY measurements with own, known accurate measurements.
+
+# First, check differences between own and ELY measurements
+# (Visualize differences to own measurements)
+comp_ELY <- merge(ref_mittaukset, kenttamittaukset, by = "paikka_id")
+comp_ELY[,"tunnus.y"] <- NULL
+comp_ELY <- dplyr::rename(comp_ELY, tunnus = tunnus.x)
+
+comp_ELY <- comp_ELY[!grepl("AM",comp_ELY$tunnus),] #Drop autom.dev. meas. (some pipe lens duped)
+
+# Compare msrmnts of pipe visible section on mossy ground.
+hist(comp_ELY[comp_ELY$mittausalusta == "moss", "putki_ely"] - 
+       (comp_ELY[comp_ELY$mittausalusta == "moss", "putki_ref_raw"]),
+      main = NA, breaks = 20,
+     xlab = "ELY pipe vis.len. – ref. meas. pipe vis.len. (mossy surface) [m]")
+# The negative differences have been confirmed to result from measuring the height
+# from the protective pipe rim instead of the pipe proper.
+
+# Drop duplicated msrmnts of the same locations for the following comparisons.
+comp_ELY_loc <- comp_ELY[!(duplicated(comp_ELY$East) & duplicated(comp_ELY$North)), ]
+# Drop a few of the most inaccurate ref.measurements
+comp_ELY_loc <- comp_ELY_loc[comp_ELY_loc$Vt_Prec < 0.09, ]
+
+# Compare measured ground elevation values
+hist(comp_ELY_loc$kor_ely - comp_ELY_loc$Elev, breaks = 30,
+     xlab = "ELY elev. – ref. meas. elev. [m]", main = NA)
+# Compare measured position coordinates
+hist(terra::distance(
+  cbind(comp_ELY_loc$East, comp_ELY_loc$North),# own meas.
+  cbind(as.numeric(comp_ELY_loc$uusi_lon), as.numeric(comp_ELY_loc$uusi_lat)), # ELY meas.
+  lonlat = F, pairwise = T), breaks = 30,
+  xlab = "Horizontal difference between ref. meas. and ELY meas. [m]", main = NA)
+
+
+
+#### Overwrite appropriate values with own measurements into yhd_mittaukset
+
+# Init variable (ELY measurements as the base)
+yhd_mittaukset <- data.frame(kenttamittaukset, source = "ELY")
+# Prep also a col for vertical precision from own measurements
+yhd_mittaukset[["Vt_Prec"]] <- NA
+
+# Add places from ref measurements which are not in ELY measurements
+# Rename cols to enable bind_rows
+ow_refmit <- dplyr::rename(
+  ref_mittaukset[ , c("paikka_id","tunnus","East","North","Elev","putki_ref","Vt_Prec")],
+  uusi_lon = East, uusi_lat = North,
+  kor_ely = Elev, putki_ely = putki_ref)
+ow_refmit <- data.frame(ow_refmit, source = "Pietari") # Add col to indicate source
+
+# Add rows for places which are missing in ELY measurements but included in own
+yhd_mittaukset <- dplyr::bind_rows(
+  yhd_mittaukset, 
+  ow_refmit[!ow_refmit$paikka_id %in% kenttamittaukset$paikka_id, ])
+
+# Loop through the own reference measurements to replace ELY measurements
+for (id in ow_refmit$paikka_id) {
+  # For all columns (except "source")
+  for (va in names(ow_refmit)[(names(ow_refmit) != "source")]) {
+    # Select own measurement value if exists, otherwise select ELY measurement
+    yhd_mittaukset[yhd_mittaukset$paikka_id == id, va] <-
+      ifelse(!is.na(ow_refmit[ow_refmit$paikka_id == id, va]),
+             ow_refmit[ow_refmit$paikka_id == id, va],
+             kenttamittaukset[kenttamittaukset$paikka_id == id, va])
+    # Also update source information (no empty spots in own measurements, so
+    # updating for all columns is OK, albeit redundant computation)
+    if (!is.na(ow_refmit[ow_refmit$paikka_id == id, va]))
+      yhd_mittaukset[yhd_mittaukset$paikka_id == id, "source"] <- "Pietari"
+  }
+}
+rm(ow_refmit, id, va)
+
+# Rename cols of the combined var to indicate that they are not only ELY meas.
+yhd_mittaukset <- dplyr::rename(yhd_mittaukset,
+                    yhd_lon = uusi_lon, yhd_lat = uusi_lat,
+                    yhd_maa = kor_ely, yhd_putki = putki_ely)
+
+```
+
+```{r yhdista-uudet-mittaukset-kaikkiin-paikkoihin}
+# Combine own + ELY measurements with place info. Select database value if missing
+
+# 1s load places from database which are in new measurements but not in orig. fetch
+if (USERCONF$pakota_lataus_paikkatiedot == T) {
+  lisapaikat <- hae_paikat(
+    paikka_id_lista = setdiff(yhd_mittaukset$paikka_id, kaikki_paikat$paikka_id),
+    savepath = file.path(D$data,"lisapaikat_yhd_mittauksissa.csv"))
+} else {
+  lisapaikat <- read.csv(file.path(D$data,"lisapaikat_yhd_mittauksissa.csv"),
+                         colClasses = c(asema_tunnus="character",asema_nimi="character",
+                              tunnus="character",asema_id="numeric",paikka_id="numeric"),
+                         na.strings = c("","NA"),
+                         fileEncoding = "UTF-8-BOM")
+}
+
+kaikki_paikat <- rbind(kaikki_paikat, lisapaikat)
+rm(lisapaikat)
+
+# Rename "source" col prior to joining to indetify what it refers to
+yhd_mittaukset_temp <- dplyr::rename(yhd_mittaukset, yhd_source = source)
+
+# Yhdistetään kenttämittausten taulusta relevantit sarakkeet kaikkien paikkojen tauluun
+# Jos kenttämittauksissa on mukana paikkoja, joita ei ole kaikki_paikat
+# taulussa, ne jäävät yhdistämättä.
+# (joillakin asemilla ELYn kartoitus kattaa asemiin linkittämättömiä kohteita)
+kaikki_paikat <- dplyr::left_join(kaikki_paikat,
+                    yhd_mittaukset_temp[ ,c("yhd_lat","yhd_lon",
+                                       "yhd_putki","yhd_maa","Vt_Prec",
+                                       "yhd_source","paikka_id")],
+                    by = "paikka_id")
+rm(yhd_mittaukset_temp)
+
+# Combine the coords into full cols, preferring yhd_ coords, as more precise
+kaikki_paikat["comb_lon"] <- ifelse(!is.na(kaikki_paikat$yhd_lon),
+                                    kaikki_paikat$yhd_lon, kaikki_paikat$lon)
+kaikki_paikat["comb_lat"] <- ifelse(!is.na(kaikki_paikat$yhd_lat),
+                                    kaikki_paikat$yhd_lat, kaikki_paikat$lat)
+
+
+# Calculate a column also for own+ELY measurement pipe tops (easier use later)
+kaikki_paikat["yhd_yla"] <- kaikki_paikat$yhd_maa + kaikki_paikat$yhd_putki
+
+
+```
+
+```{r valmistele-uudet-koordinaatit-tietokantaan-vientiin}
+# Perform checks on how much the coordinates would change if uploaded to database
+koord_upd_dir <- check_dir(D$tulokset,"koordinaattipaivitykset",ensure=T)
+#### EROT KONSULTTIEN PAIKOISSA ############################################
+### Check how much coordinates will change on consultant locations
+# Get consultant places file
+konsulttipath <- file.path(D$data,"konsulttien_havaintopaikat.xlsx")
+# Read in excel sheets
+konsulttip1 <- readxl::read_excel(konsulttipath, skip = 7, sheet = 1)
+konsulttip2 <- readxl::read_excel(konsulttipath, skip = 7, sheet = 2)
+konsulttip3 <- readxl::read_excel(konsulttipath, skip = 7, sheet = 3)
+konsulttip <- rbind(konsulttip1,konsulttip2) |> rbind(konsulttip3) # Join sheets
+# Automatically match paikka_ids
+konsulttip[ ,"paikka_id"] <- NA # Prep paikka_id
+for (i in 1:nrow(konsulttip)) {
+  if (is.na(konsulttip[i,"paikka_id"])) {
+    id <- kaikki_paikat[kaikki_paikat$tunnus == konsulttip[[i,"Rakenne"]] &
+                    kaikki_paikat$asema_tunnus == konsulttip[[i,"Asema-\r\ntunnus"]],
+                    "paikka_id"]
+    if (rlang::is_empty(id)) print(konsulttip[i,c("Asema-\r\ntunnus","Rakenne")])
+    else konsulttip[i,"paikka_id"] <- id
+  }
+}
+rm(konsulttip1,konsulttip2,konsulttip3, konsulttipath, i, id)
+# Check match validity
+stopifnot(!anyNA(konsulttip$paikka_id), !any(duplicated(konsulttip$paikka_id)))
+
+# Select only those consultant locations which have been measured by ELY or own meas.
+cat("Ero ELY mittauksen ja vanhentuneen(?) palvelukuvauksen välillä konsulttikohteissa")
+konsulttip <- konsulttip[konsulttip$paikka_id %in% yhd_mittaukset$paikka_id, ]
+dist_df <- merge(yhd_mittaukset, konsulttip, by = "paikka_id") |>
+  dplyr::mutate(vanha_lon=NULL, vanha_lat=NULL, liejuun_ely=NULL, maalajit=NULL, `Asema-\r\ntunnus`=NULL, Nimi=NULL)
+dist_df[["dist"]] <- terra::distance(
+  cbind(as.numeric(dist_df$yhd_lon),as.numeric(dist_df$yhd_lat)),
+  cbind(as.numeric(dist_df$`ETRS-TM35FIN itä`),as.numeric(dist_df$`ETRS-TM35FIN pohj.`)),
+  pairwise = T, lonlat = F)
+print(dist_df[dist_df$dist > 10, ])
+
+cat("Ero ELY mittauksen ja tietokannan välillä konsulttikohteissa.")
+konsulttip <- kaikki_paikat[kaikki_paikat$paikka_id %in% konsulttip$paikka_id, ]
+dist_df <- konsulttip  |>
+  dplyr::mutate(vanha_lon=NULL, vanha_lat=NULL, liejuun_ely=NULL, maalajit=NULL, `Asema-\r\ntunnus`=NULL, Nimi=NULL)
+dist_df[["dist"]] <- terra::distance(cbind(as.numeric(dist_df$lon),as.numeric(dist_df$lat)),
+                cbind(dist_df$yhd_lon, dist_df$yhd_lat),
+                pairwise = T, lonlat = F)
+print(dist_df[dist_df$dist > 10, ])
+rm(dist_df, konsulttip)
+
+
+
+
+#### EROT TIETOKANNAN JA ELYJEN VÄLILLÄ ####################################
+# Compare ELY coord msrmnts to db to spot possible bad or mislabeled ELY msrmnts
+# Retrieve older snapshot of monitoring points info, in case the coordinates are
+# updated during this research
+db_koord <- data.table::fread(
+  file = file.path(D$data,"vanhat_paikkatiedot_2024_03_19.csv"),
+  na.strings = "NA",
+  data.table = F,
+  keepLeadingZeros = T)
+# Limit to ones which have field measurements done
+db_koord <- db_koord[
+  db_koord$paikka_id %in% yhd_mittaukset$paikka_id, ]
+
+# Sort both (old db values and field measurements) for calculating differences
+db_koord <- db_koord[with(db_koord, order(paikka_id)), ]
+kent <- yhd_mittaukset[with(yhd_mittaukset, order(paikka_id)),
+                       c("paikka_id","asema_nimi","asema_tunnus","tunnus","yhd_lat","yhd_lon") ]
+stopifnot(all.equal(db_koord$paikka_id, kent$paikka_id))
+
+# Calculate distances to cached database coordinates
+kent[["coord_diff_to_db"]] <- 
+  terra::distance(
+  cbind(kent$yhd_lon, kent$yhd_lat),
+  cbind(db_koord$lon , db_koord$lat),
+  lonlat = F, pairwise = T) |> round(2)
+
+
+# Combine old coordinates recorded in 2022 database snapshot with current db
+# coordinates of places not yet present in the snapshot.
+# Eliminates the effect of ELYs updating coordinates right after their own measurements
+db_koord <- data.table::fread(
+  file = file.path(D$data,"2022_kenttamitt_paikkatiedot.csv"),
+  na.strings = c("NA","NULL",""),
+  data.table = F,
+  keepLeadingZeros = T)
+# Clean up and fix colnames
+db_koord <- dplyr::rename(db_koord, lat_2022 = KoordErTmPohj, lon_2022 = KoordErTmIta,
+                          paikka_id = Paikka_Id, tunnus = Tunnus)
+db_koord <- db_koord[, !names(db_koord) %in% "PaikkaTyyppi_Id"]
+# Join yhd_mittaus data copy
+db_koord <- dplyr::left_join(db_koord, kent, by = "paikka_id")
+# Calculate distance to old 2022 coordinates
+db_koord[["coord_diff_to_2022"]] <- 
+  terra::distance(
+  cbind(db_koord$yhd_lon, db_koord$yhd_lat),
+  cbind(db_koord$lon_2022 , db_koord$lat_2022),
+  lonlat = F, pairwise = T) |> round(2)
+
+# Merge the vector of old coordinates with fuller data
+kent <- dplyr::left_join(kent, 
+                         db_koord[,c("paikka_id","lat_2022","lon_2022","coord_diff_to_2022")],
+                         by = "paikka_id")
+
+# Ensure data.table for filtering
+kent <- data.table::as.data.table(kent)
+db_koord <- data.table::as.data.table(db_koord)
+
+#### See stats on how great is the difference bween db and ELY measurements
+# Grep to drop groundfrost and snow places (r or s followed by 1/2 digits)
+cat("MAE of coordinate differences (database vs. ELYs):")
+DescTools::MAE(na.omit(kent[!grepl("^.*[rs]\\d{1,2}$",kent$tunnus) ,coord_diff_to_db]),0)
+cat("95% quantile of coordinate differences (database vs. ELYs)")
+quantile(na.omit(kent[!grepl("^.*[rs]\\d{1,2}$",kent$tunnus) ,coord_diff_to_db]),0.95)
+cat("Median of coordinate differences (database vs. ELYs)")
+median(na.omit(kent[!grepl("^.*[rs]\\d{1,2}$",kent$tunnus) ,coord_diff_to_db]))
+hist(log10(kent[!grepl("^.*[rs]\\d{1,2}$",kent$tunnus) ,coord_diff_to_db]),breaks=50)
+
+# Select only larger differences
+over50m <- kent[(coord_diff_to_db>50|is.na(coord_diff_to_db))&(coord_diff_to_2022>50|is.na(coord_diff_to_2022)),][order(asema_tunnus,-coord_diff_to_db)]
+# Drop if both distances are NA
+over50m <- over50m[!(is.na(coord_diff_to_db) & is.na(coord_diff_to_2022)),]
+print(over50m[ , list(paikka_id,asema_nimi,tunnus,coord_diff_to_db)])
+# Save to file (used outside of this project to investigate bad places with ELYs)
+data.table::fwrite(over50m,
+      file = file.path(koord_upd_dir,"ELY+refmittaus_suuri_ero.csv"), bom = T)
+
+rm(kent, db_koord, over50m)
+
+
+
+#### SAVE RESULTS (after checks) ################
+# Select coordinate info to be written into db (outside of this project)
+db_batch <- yhd_mittaukset[ ,c("paikka_id","tunnus","yhd_lat","yhd_lon","source")]
+db_batch <- dplyr::mutate(db_batch, yhd_lat=round(yhd_lat), yhd_lon=round(yhd_lon))
+# Add +2m to groundfrost and snowstick coords to improve map legibility
+db_batch[grepl("^.*[rs]\\d{1,2}$",db_batch$tunnus), "yhd_lon"] <-
+  db_batch[grepl("^.*[rs]\\d{1,2}$",db_batch$tunnus),"yhd_lon"] + 2
+db_batch[grepl("^.*[rs]\\d{1,2}$",db_batch$tunnus), "yhd_lat"] <-
+  db_batch[grepl("^.*[rs]\\d{1,2}$",db_batch$tunnus),"yhd_lat"] + 2
+data.table::fwrite(na.omit(db_batch), # Save file
+  file.path(koord_upd_dir,"koordinaattipaivitykset_final.csv"), bom = T)
+rm(db_batch, koord_upd_dir)
+
+```
+
+
+
+```{r LAS-aineiston-katalogien-muodostaminen, results='hide'}
+
+### Create LAS catalog for areas where stations are located (full Finland too heavy)
+
+# Link stations manually to LAS data via map sheets to enable loading only req areas
+source(file.path(D$koodi, "link_asem_karttaleht_las_tuotantoal.R"))
+# Create the catalog, if access to LAS data.
+if (USERCONF$ajo_las_alustalla == T) {
+  source(file.path(D$koodi, "muodosta_las_katalogi.R"))
+}
+
+# This should not be needed, as the main catalog is small enough
+if (USERCONF$DEV$experimental == T) {
+      # Muodostetaan pääkatalogista suppeampi, paikkakohtainen katalogi
+      # Tämä siksi, koska rajattavat alueet ovat niin kaukana toisistaan
+      
+      h <- USERCONF$loc_dtm_margin # Use consistent marginal
+      
+      # Muutetaan koko aineiston katalogi tallentamaan LAS klipit omaan kansioonsa 
+      lidR::opt_output_files(ktlg) <- paste0(
+        check_dir(D$data, "5p_putkittainen", ensure = T),
+        "/{XCENTER}_{YCENTER}_{ID}")
+      # Leikataan pääkatalogista alue jokaiselle paikalle marginaalin mukaan
+      paikat_ktlg <- lidR::clip_rectangle(
+        ktlg,
+        kaikki_paikat[, "lon"] - h, kaikki_paikat[, "lat"] - h,
+        kaikki_paikat[, "lon"] + h, kaikki_paikat[, "lat"] + h)
+      rm(h)
+      # Paikkakohtaisten klippien katalogi käsittelee tiedostoja erillisinä, koska
+      # eivät muodosta yhtenäistä aluetta
+      lidR::opt_independent_files(paikat_ktlg) <- TRUE
+      
+      # Palautetaan katalogien tulosten tallennuspolku tyhjäksi, koska ei haluta
+      # samaan kansioon muita mahdollisia käsittelyjen tuloksia
+      lidR::opt_output_files(ktlg) <- ""
+      lidR::opt_output_files(paikat_ktlg) <- ""
+      lidR::opt_progress(paikat_ktlg) <- FALSE # Quiet
+      
+      # Linkitetään tallennetut klipit varalta paikka_id:isiin.
+      # Palauttaa muuttujan "indeksi_5p", jossa tiedostojen yhteydet paikkoihin.
+      source(file.path(D$koodi, "link_paikkaid_las_klipit.R"))
+}
+
+```
+
+```{r LAS-katalogien-tarkistus}
+if (USERCONF$ajo_las_alustalla == T) {
+  # Tarkistetaan katalogin eheys
+  lidR::las_check(ktlg)
+  # Tarkistetaan miltä katalogi näyttää
+  lidR::plot(ktlg, chunk = T)
+  
+  
+  if (USERCONF$DEV$experimental == T) {
+    lidR::las_check(paikat_ktlg)
+    lidR::plot(paikat_ktlg, chunk = T)
+  }
+}
+```
+
+```{r LAS-aineisto-korkeusmalleiksi-ja-korkeuden-lukeminen}
+# Muodostetaan katalogista DTM
+
+if (USERCONF$ajo_las_alustalla == T) {
+  # Create DTMs (type selection based on results of vertaa_DTMia_mittauksiin.R)
+  fut_create_DTMs(ktlg,
+                  kaikki_paikat$lon, kaikki_paikat$lat,
+                  dtm_type = "krig50",
+                  ids = kaikki_paikat$paikka_id,
+                  folder = file.path(D$data,"LAS_DTM"),
+                  clean = USERCONF$luo_kaikki_5p_dtm,
+                  reso = USERCONF$DEV$dtm_luonti_solukoko,
+                  margin = USERCONF$loc_dtm_margin)
+}
+# Read elevations of the created DTMs
+# Use the more precisely defined yhd_lon/lat, and only if not available, use db coords
+if (!exists("dtm_elev")) {
+dtm_elev <- read_DTM_elev(file.path(D$data,"LAS_DTM","krig50"),
+                             kaikki_paikat$paikka_id,
+                             kaikki_paikat$comb_lon, kaikki_paikat$comb_lat,
+                             c_name = "dtm_elev") |>
+            dplyr::rename(.data = _, paikka_id = id) # Rename id col
+}
+# Adjust read DTM elevations based on the previously determined median shift
+# from the reference measurements
+dtm_elev["dtm_elev"] <- dtm_elev["dtm_elev"] + krig50shift
+
+# Join elevations by paikka_id
+if ("dtm_elev" %in% names(kaikki_paikat))
+  kaikki_paikat$dtm_elev <- NULL # Wipe col if exists from prev run
+# Join (/re-join)
+kaikki_paikat <- merge(kaikki_paikat, dtm_elev, by = "paikka_id")
+
+```
+
+
+
+```{r KM2-lataaminen-ja-lukeminen}
+
+# Code below downloads KM2 elevation model data from station and observation
+# location coordinates.
+# KM2 was evaluated in vertaa_DTMia_mittauksiin.R to be less accurate than LAS
+# data, and thus is not the primary source to propose new pipe top / ground elevs.
+# 
+# KM2 elevations will still be used in locations where LAS is not yet available 
+
+# Define full KM2 data storage folder
+km2_dir <- check_dir(D$data, "KM2", ensure = T)
+# Download KM2 data (if forced)
+if (USERCONF$pakota_lataus_KM2 == T) {
+  source(file.path(D$koodi,"lataa_taysi_km2_aineisto.R"))
+}
+
+# Elevations from KM2 data
+km2_elevs <- read_KM2_elev(km2_dir, kaikki_paikat$paikka_id,
+                           kaikki_paikat$comb_lon, kaikki_paikat$comb_lat) |>
+  dplyr::rename(paikka_id = id, km2_elev = elev)
+
+# Join elevations by paikka_id
+if ("km2_elev" %in% names(kaikki_paikat))
+  kaikki_paikat$km2_elev <- NULL # Wipe col if exists from prev run
+# Join (/re-join)
+kaikki_paikat <- merge(kaikki_paikat, km2_elevs, by="paikka_id")
+
+# Elevations from KM2 not shifted like LAS-DTM elevations.
+# Spread of errors in KM2 vs. reference measurements too large.
+
+message("KM2 elevation model elevations read for all points")
+message("Ilmoitukset 'proj_create_from_database:' ei pitäisi haitata")
+rm(km2_elevs)
+
+```
+
+```{r KM2-aineiston-luokittelun-kirjaaminen}
+# Haetaan MML:ltä saatu tieto KM2-mallin laadun jakautumisesta karttalehdittäin
+KM2_qual <- data.table::fread(
+  file.path(D$data, "km2_laatuluokat","km2_laatuluokat.txt"),
+  fill = TRUE)
+# Uudelleennimetään tärkeimmät sarakkeet
+colnames(KM2_qual)[1] <- "karttalehti"
+colnames(KM2_qual)[2] <- "KM2_laatu"
+
+
+# Hyödynnetään KM2:n laadun linkityksessä asemien karttalehtilinkitystä
+
+linkitykset_5p[["KM2_laatu"]] <- rep(NA, nrow(linkitykset_5p))  # Alustetaan sarake
+
+for (laatu_i in 1:length(KM2_qual$karttalehti)) {
+  # Etsitään, minkä aseman rivi täsmää laatutiedon karttalehteen
+  i <- grep(paste0("*",KM2_qual[laatu_i,"karttalehti"]), linkitykset_5p$karttalehti)
+  
+  if (rlang::is_empty(i)) next # Ohitetaan tyhjä match
+  
+  for (n in i) {   # Siltä varalta että grep löytää monta osumaa
+    # Jos ei vielä ole laatuluokkaa, korvataan NA
+    if (is.na(linkitykset_5p[n,c("KM2_laatu")])) 
+      linkitykset_5p[n,c("KM2_laatu")] <- KM2_qual[laatu_i,c("KM2_laatu")]
+    else
+      # Jos on jo luokka, lisätään solun "perään"
+      linkitykset_5p[n,c("KM2_laatu")] <- paste(linkitykset_5p$KM2_laatu[n],
+                                        KM2_qual[laatu_i,c("KM2_laatu")])
+  }
+}; rm(i, n, laatu_i)
+
+#### Käsitellään listatut luokkatiedot poikkeustapausten varalta
+####
+# Jaetaan kerätyt luokat erilleen (luokat "I" ja "II")
+luokat_eritelty <- sapply(linkitykset_5p$KM2_laatu, strsplit, split = " ")
+# Tiivistetään uniikkeihin
+luokat <- sapply(luokat_eritelty, unique)
+# Jos on kahta laatuluokkaa sekaisin, merkitään luokaksi huonompi, eli "II"
+sekaisin <- sapply(luokat, function(x) if (length(x) > 1) "II" )
+
+# Ajetaan kahden laatuluokan omaavien tiedot kaikkiin tietoihin
+for (i in 1:length(luokat)) {
+  luokat[i] <- ifelse(length(sekaisin[[i]]) == 0, luokat[i], sekaisin[i])
+}; rm(i)
+
+# Yhdistetään linkitystauluun ei-käsiteltyjen tietojen päälle
+linkitykset_5p$KM2_laatu <- unlist(luokat)
+
+# Tarkistetaan vielä tapaukset, joissa asema on kahdella tuotantoalueella
+for (id in linkitykset_5p$asema_id) {
+  # Katsotaan asemia joita esiintyy 2 rivillä
+  if (nrow(linkitykset_5p[linkitykset_5p$asema_id == id, ]) > 1) {
+    asema <- linkitykset_5p[linkitykset_5p$asema_id == id, ]
+    # Jos rivien laatutiedot poikkeavat, muutetaan laadut "II"
+    if (unique(asema$KM2_laatu) > 1) {
+      linkitykset_5p[linkitykset_5p$asema_id == id, "KM2_laatu"] <- "II"
+    }
+  }
+}; rm(id, asema)
+
+
+#### Jaetaan laatuluokat kaikkien havaintopaikkojen taulukkoon
+####
+kaikki_paikat[["KM2_laatu"]] <- rep(NA, nrow(kaikki_paikat)) # Alustetaan sarake
+
+# Poistetaan kahdennetut aseman rivit (jos asema kahden tuotantoalueen alueella)
+trim_linkit <- linkitykset_5p[!duplicated(linkitykset_5p$asema_id), ]
+
+# Kohdennetaan laatutiedot asema_id:n perusteella
+for (id in unique(linkitykset_5p$asema_id)) {
+  kaikki_paikat[kaikki_paikat$asema_id %in% id, "KM2_laatu"] <-
+    trim_linkit[trim_linkit$asema_id %in% id, "KM2_laatu"]
+}; rm(id)
+
+rm(luokat_eritelty, sekaisin, luokat, trim_linkit) #Clean
+
+```
+
+
+
+```{r koordinaattien-siirron-vaikutus-korkeuteen}
+# Examine how the uncertainty of coords affects the reliability of elevation 
+# obtained from a DTM from a desired point
+
+# Calculate the differences in coordinates between ELY meas and ref.meas
+coord_err <- data.frame(matrix(NA, nrow(comp_ELY_loc), ncol=3,
+                               dimnames=list(NULL, c("lon","lat","dist"))))
+coord_err$lon <- comp_ELY_loc$East - comp_ELY_loc$uusi_lon
+coord_err$lat <- comp_ELY_loc$North - comp_ELY_loc$uusi_lat
+coord_err$dist <- terra::distance(
+  cbind(comp_ELY_loc$East, comp_ELY_loc$North),# own meas.
+  cbind(as.numeric(comp_ELY_loc$uusi_lon),as.numeric(comp_ELY_loc$uusi_lat)),#ELY meas.
+  lonlat = F, pairwise = T)
+
+# Try to visualise error dist, no good results
+fitdistrplus::descdist(collapse::na_rm(coord_err$lon))
+fitdistrplus::descdist(collapse::na_rm(coord_err$lat))
+fitdistrplus::descdist(collapse::na_rm(coord_err$dist), boot = 1e3)
+
+gamma_fit <- fitdistrplus::fitdist(collapse::na_rm(coord_err$dist), "gamma")
+plot(gamma_fit)
+unif_fit <- fitdistrplus::fitdist(collapse::na_rm(coord_err$dist), "unif")
+plot(unif_fit)
+rm(unif_fit, gamma_fit)
+
+
+# Plot the histogram of ELY measurements distance to the corresponding ref.msrmnts
+png(f.path(D$tulokset,"ref_mittaukset","ELY_dist_to_ref.png"),
+    width=18,height=13,units="cm",res=300)
+hist(coord_err$dist,
+     breaks=seq(0,to=ceiling(max(coord_err$dist,na.rm=T)),by=0.1), 
+     xlab="ELY measurement distance to ref. meas. [m]", main=NA)
+# Add vertical lines at various points of the distance error distribution
+abline(v = quantile(coord_err$dist,0.95,na.rm=T), lty=2,lwd=3,col="red")#95th percentile
+abline(v = mean(coord_err$dist,na.rm=T), lty=2,lwd=3,col="orange2") # Mean
+abline(v = median(coord_err$dist,na.rm=T), lty=2,lwd=3,col="green3") # Median
+dev.off()
+
+# Set the elev reading error radius as the 95th percentile of the distance error
+r <- quantile(coord_err$dist, 0.95, na.rm=T)
+
+
+# Errors distributed fixed length away, along a circle circumference
+# (sampled, random direction) (NOT ULTIMATELY USED)
+x <- seq(0,1, length.out = nrow(kaikki_paikat)) |>
+  sample(size = nrow(kaikki_paikat), replace = T)
+# Using 95th percentile of distance error as radius:
+lon_err <- r*cos(2*pi*x) # Calculate lon and lat error shifts separately
+lat_err <- r*sin(2*pi*x)
+ggplot()+geom_point(aes(x=lat_err, y=lon_err)) # Confirm that works as intended
+
+
+# Uniform distribution inside a circle (the used coord shift method)
+a <- runif(nrow(kaikki_paikat), 0, 1)
+b <- runif(nrow(kaikki_paikat), 0, 1)
+# Swap a and b individual values such that a[i] < b[i]
+for (i in 1:nrow(kaikki_paikat)) {
+  if (a[i] > b[i]) {
+    temp <- a[i]
+    a[i] <- b[i]
+    b[i] <- temp
+  }
+}; rm(temp, i)
+
+# Calculate the points in a circle
+lon_err <- b*r*cos(2*pi*a/b)
+lat_err <- b*r*sin(2*pi*a/b)
+ggplot()+geom_point(aes(x=lat_err, y=lon_err)) #Viz the uniform distr w/in circle
+
+
+bwid <- 6e-3 # Define bandwidth for density plotting in this section
+
+# Read dtm elevs where coords shifted within a circle w/ r of 95th percentile of
+# ELY msrmnt distance error
+shifted_dtm_elev_maxerr <- read_DTM_elev(f.path(D$data,"LAS_DTM","krig50"),
+                                  kaikki_paikat$paikka_id,
+                                  kaikki_paikat$comb_lon + lon_err,
+                                  kaikki_paikat$comb_lat + lat_err,
+                                  c_name = "dtm_elev") |>
+  dplyr::rename(.data = _, paikka_id = id)
+# Perform the elimination of systematic error
+shifted_dtm_elev_maxerr$dtm_elev <- shifted_dtm_elev_maxerr$dtm_elev + krig50shift
+shifted_km2_elev_maxerr <- read_KM2_elev(km2_dir, kaikki_paikat$paikka_id,
+                                          kaikki_paikat$comb_lon + lon_err,
+                                          kaikki_paikat$comb_lat + lat_err)
+# Define xlims to be common across three of the plots
+xlims <-
+  c(round(min(shifted_km2_elev_maxerr$elev - kaikki_paikat$km2_elev, na.rm=T),1)-0.1,
+    round(max(shifted_km2_elev_maxerr$elev - kaikki_paikat$km2_elev, na.rm=T),1)+0.1)
+
+png(f.path(D$tulokset,"korkeudet","elev_err_from_coordshift_r=maxerr.png"),
+    width=17, height=11, units="cm", res=300)
+plot(density(shifted_km2_elev_maxerr$elev - kaikki_paikat$km2_elev,
+             na.rm = T, bw = bwid),
+     lwd = 2, col = "dodgerblue", axes=F, xlim = xlims, ylim=c(0,35.1),
+     main="Shift radius: 95th percentile error distance",
+     xlab="Change in elevation [m]"); axis(1); axis(2)
+text(x=-0.3, y=8, paste("n =",
+       length(na.omit(shifted_km2_elev_maxerr$elev - kaikki_paikat$km2_elev))),
+     col = "dodgerblue")
+points(density(shifted_dtm_elev_maxerr$dtm_elev - kaikki_paikat$dtm_elev,
+               na.rm = T, bw = bwid),
+       type="l", lwd = 2)
+text(x=0.4, y=3, paste("n =",
+       length(na.omit(shifted_dtm_elev_maxerr$dtm_elev - kaikki_paikat$dtm_elev))))
+abline(v = 0, col="gray", lty=2)
+legend(0.5, 15, legend=c("Lidar-DTM","KM2"), col=c("black","dodgerblue"), lty=1,lwd=2)
+dev.off()
+
+
+# Do the same but using the error median and mean values as the shifting distance
+r <- mean(coord_err$dist, na.rm=T)
+lon_err <- b*r*cos(2*pi*a/b)
+lat_err <- b*r*sin(2*pi*a/b)
+shifted_dtm_elev_meanerr <- read_DTM_elev(f.path(D$data,"LAS_DTM","krig50"),
+                                  kaikki_paikat$paikka_id,
+                                  kaikki_paikat$comb_lon + lon_err,
+                                  kaikki_paikat$comb_lat + lat_err,
+                                  c_name = "dtm_elev") |>
+  dplyr::rename(.data = _, paikka_id = id)
+# Perform the elimination of systematic error
+shifted_dtm_elev_meanerr$dtm_elev <- shifted_dtm_elev_meanerr$dtm_elev + krig50shift
+shifted_km2_elev_meanerr <- read_KM2_elev(km2_dir, kaikki_paikat$paikka_id,
+                                          kaikki_paikat$comb_lon + lon_err,
+                                          kaikki_paikat$comb_lat + lat_err)
+png(f.path(D$tulokset,"korkeudet","elev_err_from_coordshift_r=meanerr.png"),
+    width=17, height=11, units="cm", res=300)
+plot(density(shifted_km2_elev_meanerr$elev - kaikki_paikat$km2_elev,
+             na.rm = T, bw = bwid),
+     lwd = 2, col = "dodgerblue", axes=F, xlim = xlims, ylim=c(0,35.1),
+     main="Shift radius: Mean of error distance",
+     xlab="Change in elevation [m]"); axis(2); axis(1)
+text(x=-0.3, y=20, paste("n =",
+       length(na.omit(shifted_km2_elev_meanerr$elev - kaikki_paikat$km2_elev))),
+     col = "dodgerblue")
+points(density(shifted_dtm_elev_meanerr$dtm_elev - kaikki_paikat$dtm_elev,
+               na.rm = T, bw = bwid),
+     lwd = 2, type="l")
+text(x=0.4, y=4, paste("n =",
+       length(na.omit(shifted_dtm_elev_meanerr$dtm_elev - kaikki_paikat$dtm_elev))))
+abline(v = 0, col="gray", lty=2)
+legend(0.5, 25, legend=c("Lidar-DTM","KM2"), col=c("black","dodgerblue"), lty=1,lwd=2)
+dev.off()
+
+
+# Elevation error if the coord shift radius is the median error in distance
+r <- median(coord_err$dist, na.rm=T)
+lon_err <- b*r*cos(2*pi*a/b)
+lat_err <- b*r*sin(2*pi*a/b)
+shifted_dtm_elev_mederr <- read_DTM_elev(f.path(D$data,"LAS_DTM","krig50"),
+                                  kaikki_paikat$paikka_id,
+                                  kaikki_paikat$comb_lon + lon_err,
+                                  kaikki_paikat$comb_lat + lat_err,
+                                  c_name = "dtm_elev") |>
+  dplyr::rename(.data = _, paikka_id = id)
+# Perform the elimination of systematic error
+shifted_dtm_elev_mederr$dtm_elev <- shifted_dtm_elev_mederr$dtm_elev + krig50shift
+shifted_km2_elev_mederr <- read_KM2_elev(km2_dir, kaikki_paikat$paikka_id,
+                                         kaikki_paikat$comb_lon + lon_err,
+                                         kaikki_paikat$comb_lat + lat_err)
+png(f.path(D$tulokset,"korkeudet","elev_err_from_coordshift_r=medianerr.png"),
+    width=17, height=11, units="cm", res=300)
+plot(density(shifted_km2_elev_mederr$elev - kaikki_paikat$km2_elev,
+               na.rm = T, bw = bwid),
+     lwd = 2, axes=F, col = "dodgerblue", xlim = xlims,
+     main="Shift radius: Median of error distance",
+     xlab="Change in elevation [m]"); axis(1);axis(2)
+text(x=-0.35, y=24, paste("n =",
+       length(na.omit(shifted_km2_elev_mederr$elev - kaikki_paikat$km2_elev))),
+     col = "dodgerblue")
+points(density(shifted_dtm_elev_mederr$dtm_elev - kaikki_paikat$dtm_elev,
+             na.rm = T, bw = bwid),
+       type="l", lwd = 2,)
+text(x=0.35, y=9, paste("n =",
+       length(na.omit(shifted_dtm_elev_mederr$dtm_elev - kaikki_paikat$dtm_elev))))
+abline(v = 0, col="gray", lty=2)
+legend(0.5, 25, legend=c("Lidar-DTM","KM2"), col=c("black","dodgerblue"), lty=1,lwd=2)
+dev.off()
+
+
+# And one more with the shift radius as double the max error of ELY msrmnts.
+r <- 2 * max(coord_err$dist, na.rm=T)
+lon_err <- b*r*cos(2*pi*a/b)
+lat_err <- b*r*sin(2*pi*a/b)
+shifted_dtm_elev_dblmaxerr <- read_DTM_elev(f.path(D$data,"LAS_DTM","krig50"),
+                                  kaikki_paikat$paikka_id,
+                                  kaikki_paikat$comb_lon + lon_err,
+                                  kaikki_paikat$comb_lat + lat_err,
+                                  c_name = "dtm_elev") |>
+  dplyr::rename(.data = _, paikka_id = id)
+# Perform the elimination of systematic error
+shifted_dtm_elev_dblmaxerr$dtm_elev <- shifted_dtm_elev_dblmaxerr$dtm_elev + krig50shift
+shifted_km2_elev_dblmaxerr <- read_KM2_elev(km2_dir, kaikki_paikat$paikka_id,
+                                         kaikki_paikat$comb_lon + lon_err,
+                                         kaikki_paikat$comb_lat + lat_err)
+png(f.path(D$tulokset,"korkeudet","elev_err_from_coordshift_r=dblmaxerr.png"),
+    width=17, height=11, units="cm", res=300)
+plot(density(shifted_km2_elev_dblmaxerr$elev - kaikki_paikat$km2_elev,
+               na.rm = T, bw = bwid),
+     lwd = 2, axes=F, col = "dodgerblue", ylim=c(0,5),
+     main="Shift radius: 2 * max error distance",
+     xlab="Change in elevation [m]"); axis(1);axis(2)
+text(x=-0.7, y=2.5, paste("n =",
+       length(na.omit(shifted_km2_elev_dblmaxerr$elev - kaikki_paikat$km2_elev))),
+     col = "dodgerblue")
+points(density(shifted_dtm_elev_dblmaxerr$dtm_elev - kaikki_paikat$dtm_elev,
+             na.rm = T, bw = bwid),
+       type="l", lwd = 2,)
+text(x=0.7, y=2.5, paste("n =",
+       length(na.omit(shifted_dtm_elev_dblmaxerr$dtm_elev - kaikki_paikat$dtm_elev))))
+abline(v = 0, col="gray", lty=2)
+legend(0.6, 5, legend=c("Lidar-DTM","KM2"), col=c("black","dodgerblue"), lty=1,lwd=2)
+dev.off()
+
+
+rm(a, b, r, bwid, xlims, lon_err, lat_err)
+```
+
+
+
+```{r ylapaiden-laskeminen-ja-kokoaminen}
+# Luodaan yhdistelmäsarake putken maanpäällisen osan pituudelle, käyttämällä 
+# tietokannasta laskettua tietoa ja kenttämittauksia. Priorisoidaan
+# kenttämittausta, omat ELYn edelle. Käytetään tulosta laskemaan oletetut
+# putken yläpäät muiden lähteiden ilmoittamasta maanpinnasta
+
+# Calculate the visible pipe section length from database values
+kaikki_paikat[["db_putki"]] <- kaikki_paikat$Yla - kaikki_paikat$KorkeusMaa 
+# Prep table for collecting pipe top section lengths, ground and pipe top elevs
+putki_yhd_temp <- cbind(kaikki_paikat[,c("paikka_id","db_putki","KM2_laatu")],
+                        data.frame(
+                          matrix(NA, nrow(kaikki_paikat), 2,
+                                 dimnames=list(NULL,c("putki","putki_source")))))
+
+# Loop through all places and note the used source of pipe top section
+for (i in 1:nrow(kaikki_paikat)) {
+  # If ELY/own measurement for pipe is found, use that
+  if (!is.na(kaikki_paikat[i,"yhd_putki"])) {
+    putki_yhd_temp[i,"putki"] <- kaikki_paikat[i, "yhd_putki"]
+    putki_yhd_temp[i,"putki_source"] <- kaikki_paikat[i, "yhd_source"]
+  }
+  else if (!is.na(kaikki_paikat[i,"db_putki"])) { #If no ELY/own msrmnt, get from db
+    # Also check that length is positive(>10cm) and not exactly 1m (oft-used paceholder)
+    if (kaikki_paikat[i,"db_putki"] > 0.1 && kaikki_paikat[i,"db_putki"] != 1.000) {
+      putki_yhd_temp[i,"putki"] <- kaikki_paikat[i, "db_putki"]
+      putki_yhd_temp[i,"putki_source"] <- "DB" # Note database as the source
+    } else { # If length in database not positive or exact 1m, set to 1m and note as missing
+      putki_yhd_temp[i,"putki"] <- 1
+      putki_yhd_temp[i,"putki_source"] <- "MISSING"
+    }
+  }
+  else { #If no ELY msrmnt and no required db info, set to 1 and note source missing
+    putki_yhd_temp[i,"putki"] <- 1
+    putki_yhd_temp[i,"putki_source"] <- "MISSING"
+  }
+}; rm(i)
+
+
+# Prep pipe ground and top elevation cols to be filled (also include db value cols)
+putki_yhd_temp <- 
+  cbind(putki_yhd_temp,
+        kaikki_paikat["Yla"],
+        data.frame(matrix(NA, nrow(kaikki_paikat), 3,
+                          dimnames = list(NULL,c("yla","yla_source","yla_verif")))),
+        kaikki_paikat["KorkeusMaa"],
+        data.frame(matrix(NA, nrow(kaikki_paikat), 3,
+                          dimnames = list(NULL,c("maa","maa_source","maa_verif")))))
+putki_yhd_temp <- dplyr::rename(putki_yhd_temp, yla_db = Yla)#Rename db pipe top col
+
+
+# Present the confidence intervals (in meters) of various known errors (used as a
+# reference on how much the new value has to differ from database to be justified)
+
+# l_own <- own msrmnt tolerance(+/-) Device reported vt.prec checked for each msrmnt
+l_ely <- 0.50 #ELY measurements(+/-) (as per a histogram of a few stations around line 318)
+l_dtm <- DescTools::Quantile( # DTM error low and high quantiles
+  ok_refpoints$krig50_error,
+  weights = 1/(ok_refpoints$Vt_Prec^2),#Weighted by vertical precision of ref elev
+  probs = c(.025, .975)
+  ) - 
+  krig50shift + # Adjusted by the shifted amount (krig50 err. weighted median)
+  # Add uncertainty of the effect of imprecise coordinates when DTM elevs are read
+  Quantile(kaikki_paikat$dtm_elev - shifted_dtm_elev_maxerr$dtm_elev,
+           probs = c(.025,.975), na.rm = T)
+l_km2 <- DescTools::Quantile( # KM2 error, low and high quantiles
+  ok_refpoints$km2_error,
+  weights = 1/(ok_refpoints$Vt_Prec^2),#Weighted by vertical precision or ref elev
+  probs = c(.025, .975)) + #Not shifted,as KM2 elev not shifted due to large spread
+  # Add uncertainty of the effect of imprecise coordinates when KM2 elevs are read
+  Quantile(kaikki_paikat$km2_elev - shifted_km2_elev_maxerr$elev,
+           probs = c(.025,.975), na.rm = T)
+
+# As the model errors were calculated by "true - model", the same order is
+# required when checking whether the difference is within the confidence interval
+
+# Loop through all places for ground elevation and pipe top value.
+# Handle pipe tops 1st, as they have the potential to be more correct
+# Ground elevs are inferred from pipe tops, such that visible pipe sections are
+# always updated to be correct (by shifting the ground) 
+for (i in 1:nrow(kaikki_paikat)) {
+  # Extract existing vars for easier readability
+  yla_db     <- kaikki_paikat[i,"Yla"]
+  KorkeusMaa <- kaikki_paikat[i,"KorkeusMaa"]
+  yhd_yla    <- kaikki_paikat[i,"yhd_yla"]
+  yhd_maa    <- kaikki_paikat[i,"yhd_maa"]
+  yhd_source <- kaikki_paikat[i,"yhd_source"]
+  Vt_Prec    <- kaikki_paikat[i,"Vt_Prec"]
+  dtm_elev   <- kaikki_paikat[i,"dtm_elev"]
+  km2_elev   <- kaikki_paikat[i,"km2_elev"]
+  putki      <- putki_yhd_temp[i,"putki"]
+  putki_source <- putki_yhd_temp[i,"putki_source"]
+  # Init new vars so they exist (though should get new value by the end of a loop iter)
+  yla<-NA; yla_source<-NA; yla_verif<-NA # New value of the pipe top elevation
+  maa<-NA; maa_source<-NA; maa_verif<-NA # New value of the ground elevation
+  
+  # Check if own measurements are available
+  if (yhd_source %in% "Pietari") {
+    # Check own pipe top against database (vt.precision of the msrmnt as tolerance)
+    if (in_prox(yla_db, yhd_yla, Vt_Prec, na_to_f = T)) {
+      # If db already within tolerance of own msrmnt, no new values (write db value)
+      yla <- yla_db
+      yla_source <- "DB" # Write source (to note as reliable)
+      yla_verif <- "Pietari" # Note also the verification source
+    } else { # Use own values, if difference beyond limit
+      yla <- yhd_yla
+      yla_source <- "Pietari"
+      yla_verif <- "BAD_DB?"
+    }
+    # Check own ground elevation against database
+    if (in_prox(KorkeusMaa, yhd_maa, Vt_Prec, na_to_f = T)) {
+      maa <- KorkeusMaa
+      maa_source <- "DB"
+      maa_verif <- "Pietari"
+    } else {
+      maa <- yla - putki
+      maa_source <- p0(yla_source,"-",putki_source)
+      maa_verif <- "BAD_DB?"
+    }
+  }
+  # Check if ELY measurements are available
+  else if (yhd_source %in% "ELY") {
+    # If ELY's pipe top within tolerance of database value, do additional checks
+    if (in_prox(yla_db, yhd_yla, l_ely, na_to_f = T)) {
+      # Check other sources if ELY too close to db (some ELY msrmnts already in db)
+      if (in_prox(yla_db, yhd_yla, 0.01, na_to_f = T)) {
+        # Check LAS-DTM
+        if (!is.na(dtm_elev) &&
+            isTRUE((yhd_yla - (dtm_elev+putki)) %[]% l_dtm)) {
+          yla <- yla_db
+          yla_source <- "DB"
+          yla_verif <- p0("ELY&(DTM+",putki_source,")")
+        # Check KM2
+        } else if (!is.na(km2_elev) &&
+                   isTRUE((yhd_yla - (km2_elev+putki)) %[]% l_km2)) {
+          yla <- yla_db
+          yla_source <- "DB"
+          yla_verif <- p0("ELY&(KM2+",putki_source,")")
+        } else {
+          yla <- yla_db
+          yla_source <- "DB"
+          yla_verif <- "ELY_IN_DB?"
+        }
+      #If ELY close to db but ELY results havent been uploaded (not too close)
+      } else if (!is.na(dtm_elev) &&
+            isTRUE((yhd_yla - (dtm_elev+putki)) %[]% l_dtm)) {
+        yla <- yla_db
+        yla_source <- "DB"
+        yla_verif <- p0("ELY&(DTM+",putki_source,")")
+      } else if (!is.na(km2_elev) &&
+                   isTRUE((yhd_yla - (km2_elev+putki)) %[]% l_km2)) {
+        yla <- yla_db
+        yla_source <- "DB"
+        yla_verif <- p0("ELY&(KM2+",putki_source,")")
+      } else { 
+        yla <- yla_db
+        yla_source <- "DB"
+        yla_verif <- p0("ELY±",l_ely,"m")
+      }
+    # If too large difference to DB, check top elev also against other available elevs
+    } else if (!is.na(yhd_yla)) {
+        # 1st, is DTM elev available, and if DTM+pipe w/in dtm-tolerance of ELY's
+        if (!is.na(dtm_elev) &&
+            isTRUE((yhd_yla - (dtm_elev + putki)) %[]% l_dtm)) {
+          yla <- yhd_yla
+          yla_source <- "ELY"
+          yla_verif <- p0("DTM+",putki_source)
+        # If DTM not available, check if within range of KM2+pipe elevation
+        } else if (!is.na(km2_elev) &&
+                   isTRUE((yhd_yla - (km2_elev + putki)) %[]% l_km2)) {
+          yla <- yhd_yla
+          yla_source <- "ELY"
+          yla_verif <- p0("KM2+",putki_source)
+        # If neither source available, note no verification source
+        } else if (is.na(dtm_elev) && is.na(km2_elev)) {
+          yla <- yhd_yla
+          yla_source <- "ELY"
+          yla_verif <- "BAD_DB?(NO_VERIF)"
+        # "Checks failed" if all other available elevs differ too much from ELY's
+        } else {
+          yla <- yhd_yla
+          yla_source <- "ELY"
+          yla_verif <- "CHECKS_FAILED"
+        }
+    }
+  }
+  # Check if elev from DTM is available, and that no source was found in prev steps 
+  if (!is.na(dtm_elev) && is.na(yla_source)) {
+    # 1st check if DTM+pipe is within tolerance of db top value
+    if (isTRUE((yla_db - (dtm_elev+putki)) %[]% l_dtm)) {
+      yla <- yla_db
+      yla_source <- "DB"
+      yla_verif <- p0("DTM+",putki_source)
+      # If too far, check also against KM2 elevation
+    } else if (!is.na(km2_elev) &&
+               isTRUE((dtm_elev - km2_elev) %[]% l_km2)) {
+      yla <- dtm_elev + putki
+      yla_source <- p0("DTM+",putki_source)
+      yla_verif <- p0("KM2+",putki_source)
+    # If KM2 outside of tolerance, select the DTM elev and note differences
+    } else {
+      yla <- dtm_elev + putki
+      yla_source <- p0("DTM+",putki_source)
+      yla_verif <-
+        paste("BAD_DB?(KM2_FAIL) DB-pipe∆",round(yla_db - putki - dtm_elev,3),
+              ", KM2∆",round(km2_elev - dtm_elev,3))
+    }
+  }
+  # Last option is to use KM2 elevation, if no ground elev found in earlier steps
+  if (!is.na(km2_elev) && is.na(yla_source)) {
+    if (isTRUE((yla_db - (km2_elev+putki)) %[]% l_km2)) {
+      yla <- yla_db
+      yla_source <- "DB"
+      yla_verif <- p0("KM2+",putki_source)
+    } else { # There should not be any more elevation sources left to compare to
+      yla <- km2_elev + putki
+      yla_source <- p0("KM2+",putki_source)
+      yla_verif <- # Check to db failed, but write elev change
+        paste("BAD_DB? DB-pipe∆",round(yla_db - putki - km2_elev, 3))
+    }
+  }
+  
+  
+  # Get / calculate ground surface elevation
+  # Set ground elevations based on pipe top - pipe visible section
+  if (is.na(maa_source)) { # Check that no previous ground source (own msrmnts) 
+    maa <- yla - putki
+    # Set source as top source minus pipe top section
+    if (identical(yla_source, putki_source)) {
+      maa_source <- yla_source
+    } else maa_source <- p0(yla_source,"-",putki_source)
+    # Try to additionally verify the ground elev with LAS-DTM and KM2
+    if (!is.na(dtm_elev) &&
+              isTRUE((maa - dtm_elev) %[]% l_dtm)) {
+      maa_verif <- "DTM"
+    } else if (!is.na(km2_elev) &&
+                     isTRUE((maa - km2_elev) %[]% l_km2)) {
+        if (maa_source == "KM2+MISSING-MISSING") {
+          maa_verif <- "NO_SOURCES"
+        } else {
+          maa_verif <- "KM2"
+        }
+    } else if (is.na(dtm_elev) && is.na(km2_elev)) {
+      maa_verif <- "NO_SOURCES"
+    } else maa_verif <- "CHECKS_FAILED"
+  }
+    
+  # Assign loop variables to the correct location in the collection table
+  putki_yhd_temp[i, "yla"]        <- yla
+  putki_yhd_temp[i, "yla_source"] <- yla_source
+  putki_yhd_temp[i, "yla_verif"]  <- yla_verif
+  putki_yhd_temp[i, "maa"]        <- maa 
+  putki_yhd_temp[i, "maa_source"] <- maa_source
+  putki_yhd_temp[i, "maa_verif"]  <- maa_verif
+}
+rm(yla_db,KorkeusMaa, yhd_yla,yhd_maa,yhd_source, Vt_Prec, dtm_elev,km2_elev,
+   putki,putki_source, maa,maa_source,maa_verif, yla,yla_source,yla_verif)
+
+
+# If only very new places are missing tops, drop them
+# (verifying elevs is focused on older pipes, elevs of recently founded pipes trusted)
+if (all(putki_yhd_temp[is.na(putki_yhd_temp$yla),"paikka_id"] > 90000))
+  putki_yhd_temp <- putki_yhd_temp[!is.na(putki_yhd_temp$yla), ]
+
+
+# Perform sanity checks on the data
+stopifnot(!anyNA(putki_yhd_temp$yla)) # All elevs filled
+stopifnot(!anyNA(putki_yhd_temp$maa))
+stopifnot(!anyNA(putki_yhd_temp$yla_source)) # All sources filled
+stopifnot(!anyNA(putki_yhd_temp$maa_source))
+stopifnot(all(putki_yhd_temp$maa > -5)) # All ground elevs > -5m
+stopifnot(all(putki_yhd_temp$yla < 1300)) # All pipe tops <1300m
+stopifnot(all(putki_yhd_temp$yla - putki_yhd_temp$maa > 0.1)) #Visible sections >10cm
+stopifnot(all(putki_yhd_temp$yla - putki_yhd_temp$maa < 2)) #Visible sections <2m
+stopifnot(all(putki_yhd_temp$yla > putki_yhd_temp$maa)) #All tops above ground
+
+
+# Add identifying information to the table (for possible manual checks and sorting)
+putki_yhd_temp <- merge(
+  kaikki_paikat[
+    ,c("paikka_id","asema_tunnus","asema_nimi","tunnus","PaikkaTyyppi_Id")],
+  putki_yhd_temp, by = "paikka_id")
+
+```
+
+``` {r clean-&-save-elevation-table}
+
+# Remove top elevs for locations other than wells and monitoring pipes
+for (i in 1:nrow(putki_yhd_temp)) {
+  # Check that type is NOT monitoring pipe or well
+  if (!putki_yhd_temp[i, "PaikkaTyyppi_Id"] %in% c("Havaintoputki","Kaivo")) {
+    # Set NA to all cols relating to "pipe" top value
+    putki_yhd_temp[i,
+                   c("db_putki","putki","putki_source",
+                     "yla_db","yla","yla_source","yla_verif")] <- NA
+  }
+}; rm(i) # Clean up
+
+# Drop non-applicable types (no ground elev (and no top elev))
+putki_yhd_temp <-
+  putki_yhd_temp[!putki_yhd_temp$PaikkaTyyppi_Id %in%
+                   c("Pohjavesilammikko","Lähde","Ottamon hana",
+                     "Talousvesihana", "Virtaamahavaintopaikka","Luminäyte"), ]
+
+# Drop suspected bad ELY measurements (later possibly replaced with DTM and KM2 values)
+#bad_ely_elev <- putki_yhd_temp[putki_yhd_temp$yla_verif %in% c("ELY_IN_DB?"), ]
+# TODO jos ELYn mittauksen vertailutulokset ovat huonot , siirrytäänkö suoraan
+# tarkistamaan korkeusmallien tarkastukseen, eikä oteta ELYä huomioon?
+
+# Drop also stations which have potentially other members/organisations utilizing
+# the observations. (Old VHSP-stations)
+
+
+# Also drop structures relating to some waterworks.
+
+
+# Drop select VARELY autom.devices.(observations are uploaded via custom process)
+putki_yhd_temp <- putki_yhd_temp[!putki_yhd_temp$paikka_id %in%
+                                   c(52191, 52845, 54763, 59979, 59983, 60177,
+                                     59788, 62327, 66770, 74869, 75020, 75021), ]
+# Drop quality monitoring pipes at most stations
+# (gw elevs sent wrong, timeseries would break if top elev changes)
+# (should include SeSu places)
+putki_yhd_temp <- putki_yhd_temp[
+  !putki_yhd_temp$paikka_id %in%
+    c(7781, 7775, 7779, 41028, 3453, 3454, 2615, 2616, 3455, 3456, 2617, 9167,
+      9169, 5006, 4208, 7769, 11739, 40032, 40017, 37314, 78135, 7768, 47180,
+      54272, 88516, 82298, 45946, 14522, 69447, 58880, 88501, 7777, 7772, 7764,
+      40914, 42279, 64688, 40143, 39192, 39445, 14491, 11583, 7836, 7833, 49839,
+      7853, 7850, 7827, 14369, 14371, 21719, 69776, 7830, 47492, 71342, 73700,
+      75674, 7747, 7861, 7862, 7817, 7735, 7732, 41512, 43463, 53120, 75435,
+      7816, 7808, 7802, 17997, 7740, 3839, 24911, 7133, 7174, 7126, 69436,
+      88424, 88425), ]
+
+# All dropped cases above must be handled at a later date by communications and
+# manual data updates in cases where updating is deemed to be OK. 
+
+# TODO Ensure that pairs of manual and autom. pipes have the same elev values
+
+
+
+
+# Drop rows where man and autom. have matching elevs (0 diff)
+
+# TODO drop asemat joissa ei epäilyttäviä linkityksiä
+
+# Ei käsittelyyn mukaan vielä ELYjen mittausten vertailua 2022 tilanteeseen, eikä
+# niiden tapausten käsittelyä, joissa ELYjen mittaukset toleranssien ulkopuolella muista malleista
+# Kaikki ELYn mittaukset joissa sekä yläpää että maanpinta täsmää tietokantaan, pudotetaan pois
+
+
+
+test <-
+  putki_yhd_temp[,c("paikka_id","asema_tunnus","asema_nimi","tunnus","PaikkaTyyppi_Id",
+                    "yla_db","putki","maa_verif","yla_verif")]
+test <- merge(test,
+              kaikki_paikat[,c("paikka_id","yhd_yla","KorkeusMaa","yhd_maa","dtm_elev","km2_elev")],
+              by = "paikka_id")
+test["dtm_yla"] <- test$dtm_elev + test$putki
+test["km2_yla"] <- test$km2_elev + test$putki
+
+test <- test[test$maa_verif %in% c("CHECKS_FAILED","NO_SOURCES") |
+               test$yla_verif %in% c("CHECKS_FAILED","BAD_DB?(NO_VERIF)","ELY_IN_DB?",p0("ELY±",l_ely,"m")), ]
+data.table::fwrite(test,
+  f.path("Miralle_huonot_ELY_korkeudet.csv"),
+  bom = T)
+rm(test)
+
+
+#### Save the collated pipe top and ground elevation file
+# Select only required cols
+putki_korkeudet_outfile <-
+  putki_yhd_temp[ ,c("paikka_id","tunnus","asema_tunnus","asema_nimi",
+                     "PaikkaTyyppi_Id","yla","yla_source","yla_verif",
+                     "maa","maa_source","maa_verif","KM2_laatu")]
+
+#Round numeric cols to two decimal digits
+putki_korkeudet_outfile <-
+  dplyr::mutate_if(putki_korkeudet_outfile, is.numeric, ~round(., 2)) |>
+  dplyr::mutate(PaikkaTyyppi_Id=as.num(PaikkaTyyppi_Id))
+
+# Write the results to a file
+data.table::fwrite(putki_korkeudet_outfile,
+  check_dir(D$tulokset,"korkeudet","korkeudet_tietokantaan_DRAFT.csv", ensure = T),
+  bom = T)
+
+```
+
+``` {r plot-new-elevs}
+
+# Create a table for plotting, calculate required values,
+# replacing missing db values with 0 in a separate col
+putki_yhd_plot <- putki_yhd_temp
+putki_yhd_plot[["maa_delta"]] <- putki_yhd_plot$maa - putki_yhd_plot$KorkeusMaa
+putki_yhd_plot[["maa_filled"]] <- putki_yhd_plot$maa -
+  replace(putki_yhd_plot$KorkeusMaa, is.na(putki_yhd_plot$KorkeusMaa), 0)
+putki_yhd_plot[["maa_ver"]] <-
+  ifelse(putki_yhd_plot$maa-putki_yhd_plot$KorkeusMaa==0, 0, NA)
+putki_yhd_plot[["yla_delta"]] <- putki_yhd_plot$yla - putki_yhd_plot$yla_db
+putki_yhd_plot[["yla_filled"]] <- putki_yhd_plot$yla -
+  replace(putki_yhd_plot$yla_db, is.na(putki_yhd_plot$yla_db), 0)
+putki_yhd_plot[["yla_ver"]] <-
+  ifelse(putki_yhd_plot$yla-putki_yhd_plot$yla_db==0, 0, NA)
+
+# Drop cases from plots which need manual review
+putki_yhd_plot <- putki_yhd_plot[
+  !(putki_yhd_plot$maa_verif %in% c("CHECKS_FAILED","NO_SOURCES") |
+    putki_yhd_plot$yla_verif %in%
+      c("CHECKS_FAILED","BAD_DB?(NO_VERIF)","ELY_IN_DB?",p0("ELY±",l_ely,"m"))), ]
+
+# Plot the overall picture of the differences in elevations
+maa_deltaplot <- ggplot(putki_yhd_plot) +
+  geom_histogram(aes(maa_filled, fill=alpha("black",.7)), binwidth=2) +
+  geom_histogram(aes(maa_delta, fill=alpha("red",.7)), na.rm=T, binwidth=2) +
+  geom_histogram(aes(maa_ver, fill=alpha("yellow",.9)), na.rm=T, binwidth=2) +
+  geom_vline(xintercept=0, linetype=3, alpha=0.2, lwd=1.2) +
+  coord_trans(y="pseudo_log") +
+  scale_y_continuous(breaks=c(0,5,10,25,50,100,200,500,1000)) +
+  theme_classic() + theme(legend.position="top") +
+  labs(x="Ground elevation change [m]", y="Count") +
+  scale_fill_manual(
+    name=NULL,
+    values=alpha(c("black","red","yellow"), c(.7,.7,.9)),
+    labels=c("Originally missing elevs","Existing elevs",
+             "Unchanged")) +
+  guides(fill = guide_legend(reverse=T))
+
+yla_deltaplot <- ggplot(putki_yhd_plot) +
+  geom_histogram(aes(yla_filled, fill=alpha("black",.7)), binwidth=2) +
+  geom_histogram(aes(yla_delta, fill=alpha("red",0.7)), na.rm=T, binwidth=2) +
+  geom_histogram(aes(yla_ver, fill=alpha("yellow",.9)), na.rm=T, binwidth=2) +
+  geom_vline(xintercept=0, linetype=3, alpha=0.2, lwd=1.2) +
+  coord_trans(y="pseudo_log") +
+  scale_y_continuous(breaks=c(0,5,10,25,50,100,200,500,1000)) +
+  theme_classic() + theme(legend.position="top") +
+  labs(x="Top elevation change [m]", y="Count") +
+  scale_fill_manual(
+    name=NULL,
+    values=alpha(c("black","red","yellow"), c(.7,.7,.9)),
+    labels=c("Originally missing elevs","Existing elevs",
+             "Unchanged")) +
+  guides(fill = guide_legend(reverse=T))
+
+save2(maa_deltaplot, f.path(D$tulokset,"korkeudet","maanpinta_muutos"))
+save2(yla_deltaplot, f.path(D$tulokset,"korkeudet","ylapaa_muutos"))
+
+
+# Get the results into tables for presenting
+top_elev_sources <- data.frame(
+  source = c(
+    ref_meas = sum(putki_yhd_plot$yla_source %in% c("Pietari")),
+    db = sum(putki_yhd_plot$yla_source %in% c("DB")),
+    dtm = sum(putki_yhd_plot$yla_source %in% c("DTM+DB","DTM+ELY","DTM+MISSING")),
+    km2 = sum(putki_yhd_plot$yla_source %in% c("KM2+DB","KM2+ELY","KM2+MISSING")),
+    ely = sum(putki_yhd_plot$yla_source %in% c("ELY")))
+)
+top_elev_sources[["frac"]] <-
+  top_elev_sources$source / sum(!is.na(putki_yhd_plot$yla_source)) * 100
+# Top elev change number
+sum(top_elev_sources$source) - top_elev_sources["db","source"]
+
+ground_elev_sources <- data.frame(
+  source = c(
+    ref_meas = sum(putki_yhd_plot$maa_source %in%
+                     c("Pietari","Pietari-Pietari", "DB-Pietari")),
+    db = sum(putki_yhd_plot$maa_source %in% c("DB","DB-MISSING")),
+    dtm = sum(putki_yhd_plot$maa_source %in%
+                c("DTM","DTM+DB-DB","DTM+MISSING-MISSING","DTM+ELY-ELY")),
+    km2 = sum(putki_yhd_plot$maa_source %in%
+                c("KM2","KM2+ELY-ELY","KM2+DB-DB","KM2+MISSING-MISSING")),
+    ely = sum(putki_yhd_plot$maa_source %in% c("ELY","DB-ELY")))
+)
+ground_elev_sources[["frac"]] <-
+  ground_elev_sources$source / sum(!is.na(putki_yhd_plot$maa_source)) * 100
+# Ground elev change number
+sum(ground_elev_sources$source) - ground_elev_sources["db","source"]
+
+# Count how many values were changed from DB value, and how many DB values were verified
+cat("No. of places where elevation value changed:\nGround:",
+sum(!putki_yhd_temp$maa_source %in% "DB" & !is.na(putki_yhd_temp$maa_source)),
+"\tAverage change of changed values:",
+mean(replace(putki_yhd_temp$maa-putki_yhd_temp$KorkeusMaa,
+             putki_yhd_temp$maa-putki_yhd_temp$KorkeusMaa == 0, NA), na.rm=T),
+"\nPipe top:",
+sum(!putki_yhd_temp$yla_source %in% "DB" & !is.na(putki_yhd_temp$yla_source)),
+"\tAverage change of changed values:",
+mean(replace(putki_yhd_temp$yla-putki_yhd_temp$yla_db,
+             putki_yhd_temp$yla-putki_yhd_temp$yla_db == 0, NA), na.rm=T)
+)
+
+
+cat("\nNo. of places where existing value got verified:\nGround:",
+sum(putki_yhd_temp$maa_source %in% "DB"), "\nPipe top:",
+sum(putki_yhd_temp$yla_source %in% "DB"))
+
+# How many structure top lenghts were approximated
+sum(putki_yhd_temp$putki_source %in% "MISSING")
+sum(!is.na(putki_yhd_temp$putki_source)) #out the total
+
+
+#rm(putki_yhd_temp)
+
+```
+
+
+
+```{r session-info}
+writeLines(capture.output(sessionInfo()), f.path("doc","R_session_info.txt"))
+```
+
+
