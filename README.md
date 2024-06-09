@@ -3,7 +3,7 @@
 This code is a part of the quality control work of physical structure elevation values in the hydrological groundwater monitoring network of [the Finnish Environment Institute](https://www.syke.fi/en-US).
 Thoroughly verifying and updating the existing elevation values is required to set a reliable standard to the data produced by the network. 
 The code utilises precise field measurements of the structures, as well as national elevation datasets to verify the current coordinate and elevation values of the structures in the database.
-The national elevation datasets are [KM2](https://www.maanmittauslaitos.fi/en/maps-and-spatial-data/datasets-and-interfaces/product-descriptions/elevation-model-2-m) and [lidar 5p/m^2^](https://www.maanmittauslaitos.fi/en/maps-and-spatial-data/datasets-and-interfaces/product-descriptions/laser-scanning-data-5-p), both provided by [the National Land Survey of Finland](https://www.maanmittauslaitos.fi/en).
+The national elevation datasets are [KM2](https://www.maanmittauslaitos.fi/en/maps-and-spatial-data/datasets-and-interfaces/product-descriptions/elevation-model-2-m) and [lidar 5p/m2](https://www.maanmittauslaitos.fi/en/maps-and-spatial-data/datasets-and-interfaces/product-descriptions/laser-scanning-data-5-p), both provided by [the National Land Survey of Finland](https://www.maanmittauslaitos.fi/en).
 Confidence intervals of the elevation sources are also evaluated based on the precise field measurements.
 New elevation values are proposed to replace database values if multiple sources suggest a new value, with the database value outside of the confidence intervals of the other sources.
 
