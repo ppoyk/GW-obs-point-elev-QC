@@ -11,6 +11,7 @@ The funding for this project has come from [Maa- ja vesitekniikan tuki ry](https
 
 ---
 ## Running the script
+The core of the script is in `00-base.Rmd`, which can be run using [RStudio](https://posit.co/download/rstudio-desktop/). Supporting functions and sub-tasks of the script are located in the folder `/R/`.
 For optimal functionality, the code requires internet access, access to the groundwater database of the Finnish Environment Institute, as well as access to the full lidar dataset.
 Most of the source data used for this project cannot be provided due to restricted access, but some of it is openly available from the respective sources.
 The dependencies of the project are listed at the start of the code, as well as in DESCRIPTION. The required missing CRAN packages should get installed automatically if the script is run.
