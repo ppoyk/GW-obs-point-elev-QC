@@ -1,0 +1,46 @@
+Package: GW-obs-point-elev-QC
+Title: Quality control of elevation values in the national groundwater monitoring network
+Version: 1.0.0
+Authors@R: c(
+    person(
+        "Pietari", "Pöykkö",
+        email = "pietari.poykko@syke.fi",
+        role = c("aut", "cre"),
+        comment = c(ORCID = "0009-0000-1214-5336")),
+    person(
+        "Suomen ympäristökeskus, Finnish Environment Institute", "Syke",
+        role = c("fnd", "cph)))
+Description: Scientific analysis script formatted in a package-like structure. This code is a part of the quality control work done to the metadata of physical structures the hydrological groundwater monitoring network of Syke. It utilises precise field measurements of the structures, as well as national elevation data to verify the current coordinate and elevation values of the structures in the database. The elevation source confidence intervals are also evaluated based on said measurements.
+URL: https://github.com/ppoyk/putkitietojen-laadunvarmennus
+BugReports: https://github.com/ppoyk/putkitietojen-laadunvarmennus/issues
+License: See LICENSE
+Depends:
+    R (>= 4.0.0),
+    rmarkdown (>= 2.23),
+    ggplot2 (>= 3.4.2),
+    ggridges (>= 0.5.0),
+    future (>= 1.33.0),
+    DescTools (>= 0.99.0)
+Imports:
+    here (>= 1.0.1),
+    future.apply (>= 1.11.0),
+    odbc (>= 1.3.5),
+    httr2 (>= 0.2.3),
+    jsonlite (>= 1.8.0),
+    lidR (>= 4.0.3),
+    rlas (>= 1.6.0),
+    gstat (>= 1.2.0),
+    sf (>= 1.0.0),
+    terra (>= 1.7.0),
+    this.path (>= 2.4.0),
+    tidyr (>= 1.2.0),
+    dplyr (>= 1.1.0),
+    scales (>= 1.2.0),
+    stringr (>= 1.4.0),
+    data.table (>= 1.14.0),
+    yaml (>= 2.3.0),
+    rnaturalearth (>= 0.3.4),
+    rnaturalearthdata (>= 0.1.0)
+    rnaturalearthhires (>= 0.2.0),
+    rlang (>= 1.1.0),
+Encoding: UTF-8
