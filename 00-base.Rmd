@@ -1431,7 +1431,6 @@ maa_deltaplot <- ggplot(putki_yhd_plot) +
   geom_histogram(aes(maa_filled, fill=alpha("black",.7)), binwidth=2) +
   geom_histogram(aes(maa_delta, fill=alpha("red",.7)), na.rm=T, binwidth=2) +
   geom_histogram(aes(maa_ver, fill=alpha("yellow",.9)), na.rm=T, binwidth=2) +
-  geom_vline(xintercept=0, linetype=3, alpha=0.2, lwd=1.2) +
   coord_trans(y="pseudo_log") +
   scale_y_continuous(breaks=c(0,5,10,25,50,100,200,500,1000)) +
   theme_classic() + theme(legend.position="top") +
@@ -1447,7 +1446,6 @@ yla_deltaplot <- ggplot(putki_yhd_plot) +
   geom_histogram(aes(yla_filled, fill=alpha("black",.7)), binwidth=2) +
   geom_histogram(aes(yla_delta, fill=alpha("red",0.7)), na.rm=T, binwidth=2) +
   geom_histogram(aes(yla_ver, fill=alpha("yellow",.9)), na.rm=T, binwidth=2) +
-  geom_vline(xintercept=0, linetype=3, alpha=0.2, lwd=1.2) +
   coord_trans(y="pseudo_log") +
   scale_y_continuous(breaks=c(0,5,10,25,50,100,200,500,1000)) +
   theme_classic() + theme(legend.position="top") +
