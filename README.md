@@ -8,7 +8,7 @@ Confidence intervals of the elevation sources are also evaluated based on the pr
 New elevation values are proposed to replace database values if multiple sources suggest a new value, with the database value outside of the confidence intervals of the other sources.
 
 The code has been developed by [Pietari Pöykkö](https://orcid.org/0009-0000-1214-5336) for his Master's thesis for the [University of Oulu](https://www.oulu.fi/en), while employed at the Finnish Environment Institute.
-The Finnish Environment Institute holds the copyright to this project. See LICENSE for more.
+The Finnish Environment Institute holds the copyright to this software project. See LICENSE for more.
 
 The funding for this project has come from [Maa- ja vesitekniikan tuki ry](https://mvtt.fi/), through the POVEMU project of the Finnish Environment Institute.
 
