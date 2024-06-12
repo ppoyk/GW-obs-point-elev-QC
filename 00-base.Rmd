@@ -1422,7 +1422,7 @@ putki_yhd_plot[["yla_ver"]] <-
 
 # Drop cases from plots which need manual review
 putki_yhd_plot <- putki_yhd_plot[
-  !(putki_yhd_plot$maa_verif %in% c("CHECKS_FAILED","NO_SOURCES") |
+  !(putki_yhd_plot$maa_verif %in% c("CHECKS_FAILED") |
     putki_yhd_plot$yla_verif %in%
       c("CHECKS_FAILED","BAD_DB?(NO_VERIF)","ELY_IN_DB?",p0("ELY±",l_ely,"m"))), ]
 
