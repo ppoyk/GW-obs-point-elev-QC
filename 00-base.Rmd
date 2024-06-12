@@ -1072,22 +1072,27 @@ putki_yhd_temp <- dplyr::rename(putki_yhd_temp, yla_db = Yla)#Rename db pipe top
 
 # l_own <- own msrmnt tolerance(+/-) Device reported vt.prec checked for each msrmnt
 l_ely <- 0.50 #ELY measurements(+/-) (as per a histogram of a few stations around line 318)
-l_dtm <- DescTools::Quantile( # DTM error low and high quantiles
+l_dtm <- sqrt(
+  (DescTools::Quantile( # DTM error low and high quantiles
   ok_refpoints$krig50_error,
   weights = 1/(ok_refpoints$Vt_Prec^2),#Weighted by vertical precision of ref elev
   probs = c(.025, .975)
-  ) - 
-  krig50shift + # Adjusted by the shifted amount (krig50 err. weighted median)
+  ) - # Adjusted by the shifted amount (krig50 err. weighted median)
+  krig50shift) ^ 2 + # Squared to combine the uncertainties correctly.
   # Add uncertainty of the effect of imprecise coordinates when DTM elevs are read
   Quantile(kaikki_paikat$dtm_elev - shifted_dtm_elev_maxerr$dtm_elev,
-           probs = c(.025,.975), na.rm = T)
-l_km2 <- DescTools::Quantile( # KM2 error, low and high quantiles
+           probs = c(.025,.975), na.rm = T) ^ 2) # also squared
+l_dtm[[1]] <- l_dtm[[1]] * -1 # Lower boundary returned back to negative
+l_km2 <- sqrt(
+  DescTools::Quantile( # KM2 error, low and high quantiles
   ok_refpoints$km2_error,
   weights = 1/(ok_refpoints$Vt_Prec^2),#Weighted by vertical precision or ref elev
-  probs = c(.025, .975)) + #Not shifted,as KM2 elev not shifted due to large spread
+  probs = c(.025, .975)) ^ 2 + #Not shifted,as KM2 elevs were not corrected.
   # Add uncertainty of the effect of imprecise coordinates when KM2 elevs are read
   Quantile(kaikki_paikat$km2_elev - shifted_km2_elev_maxerr$elev,
-           probs = c(.025,.975), na.rm = T)
+           probs = c(.025,.975), na.rm = T) ^ 2)
+l_km2[[1]] <- l_km2[[1]] * -1 # Lower boundary returned back to negative
+
 
 # As the model errors were calculated by "true - model", the same order is
 # required when checking whether the difference is within the confidence interval
