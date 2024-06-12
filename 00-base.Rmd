@@ -903,6 +903,10 @@ points(density(shifted_dtm_elev_maxerr$dtm_elev - kaikki_paikat$dtm_elev,
 text(x=0.4, y=3, paste("n =",
        length(na.omit(shifted_dtm_elev_maxerr$dtm_elev - kaikki_paikat$dtm_elev))))
 abline(v = 0, col="gray", lty=2)
+abline(v = Quantile(kaikki_paikat$dtm_elev - shifted_dtm_elev_maxerr$dtm_elev,
+           probs = c(.025,.975), na.rm = T), lty=3, lwd=1.5, col="black")
+abline(v = Quantile(kaikki_paikat$km2_elev - shifted_km2_elev_maxerr$elev,
+           probs = c(.025,.975), na.rm = T), lty=3, lwd=1.5, col="dodgerblue")
 legend(0.5, 15, legend=c("Lidar-DTM","KM2"), col=c("black","dodgerblue"), lty=1,lwd=2)
 dev.off()
 
@@ -938,6 +942,10 @@ points(density(shifted_dtm_elev_meanerr$dtm_elev - kaikki_paikat$dtm_elev,
 text(x=0.4, y=4, paste("n =",
        length(na.omit(shifted_dtm_elev_meanerr$dtm_elev - kaikki_paikat$dtm_elev))))
 abline(v = 0, col="gray", lty=2)
+abline(v = Quantile(kaikki_paikat$dtm_elev - shifted_dtm_elev_meanerr$dtm_elev,
+           probs = c(.025,.975), na.rm = T), lty=3, lwd=1.5, col="black")
+abline(v = Quantile(kaikki_paikat$km2_elev - shifted_km2_elev_meanerr$elev,
+           probs = c(.025,.975), na.rm = T), lty=3, lwd=1.5, col="dodgerblue")
 legend(0.5, 25, legend=c("Lidar-DTM","KM2"), col=c("black","dodgerblue"), lty=1,lwd=2)
 dev.off()
 
@@ -973,6 +981,10 @@ points(density(shifted_dtm_elev_mederr$dtm_elev - kaikki_paikat$dtm_elev,
 text(x=0.35, y=9, paste("n =",
        length(na.omit(shifted_dtm_elev_mederr$dtm_elev - kaikki_paikat$dtm_elev))))
 abline(v = 0, col="gray", lty=2)
+abline(v = Quantile(kaikki_paikat$dtm_elev - shifted_dtm_elev_mederr$dtm_elev,
+           probs = c(.025,.975), na.rm = T), lty=3, lwd=1.5, col="black")
+abline(v = Quantile(kaikki_paikat$km2_elev - shifted_km2_elev_mederr$elev,
+           probs = c(.025,.975), na.rm = T), lty=3, lwd=1.5, col="dodgerblue")
 legend(0.5, 25, legend=c("Lidar-DTM","KM2"), col=c("black","dodgerblue"), lty=1,lwd=2)
 dev.off()
 
@@ -1008,6 +1020,10 @@ points(density(shifted_dtm_elev_dblmaxerr$dtm_elev - kaikki_paikat$dtm_elev,
 text(x=0.7, y=2.5, paste("n =",
        length(na.omit(shifted_dtm_elev_dblmaxerr$dtm_elev - kaikki_paikat$dtm_elev))))
 abline(v = 0, col="gray", lty=2)
+abline(v = Quantile(kaikki_paikat$dtm_elev - shifted_dtm_elev_dblmaxerr$dtm_elev,
+           probs = c(.025,.975), na.rm = T), lty=3, lwd=1.5, col="black")
+abline(v = Quantile(kaikki_paikat$km2_elev - shifted_km2_elev_dblmaxerr$elev,
+           probs = c(.025,.975), na.rm = T), lty=3, lwd=1.5, col="dodgerblue")
 legend(0.6, 5, legend=c("Lidar-DTM","KM2"), col=c("black","dodgerblue"), lty=1,lwd=2)
 dev.off()
 
