@@ -1472,8 +1472,10 @@ top_elev_sources <- data.frame(
 )
 top_elev_sources[["frac"]] <-
   top_elev_sources$source / sum(!is.na(putki_yhd_plot$yla_source)) * 100
-# Top elev change number
+# No. of places where structure top elevation value changed:
 sum(top_elev_sources$source) - top_elev_sources["db","source"]
+.Last.value / sum(top_elev_sources$source)
+
 
 ground_elev_sources <- data.frame(
   source = c(
@@ -1488,30 +1490,18 @@ ground_elev_sources <- data.frame(
 )
 ground_elev_sources[["frac"]] <-
   ground_elev_sources$source / sum(!is.na(putki_yhd_plot$maa_source)) * 100
-# Ground elev change number
+# No. of places where ground elevation value changed:
 sum(ground_elev_sources$source) - ground_elev_sources["db","source"]
+.Last.value / sum(ground_elev_sources$source)
 
 # Count how many values were changed from DB value, and how many DB values were verified
-cat("No. of places where elevation value changed:\nGround:",
-sum(!putki_yhd_temp$maa_source %in% "DB" & !is.na(putki_yhd_temp$maa_source)),
-"\tAverage change of changed values:",
+cat("Average change of changed ground values:",
 mean(replace(putki_yhd_temp$maa-putki_yhd_temp$KorkeusMaa,
              putki_yhd_temp$maa-putki_yhd_temp$KorkeusMaa == 0, NA), na.rm=T),
-"\nPipe top:",
-sum(!putki_yhd_temp$yla_source %in% "DB" & !is.na(putki_yhd_temp$yla_source)),
-"\tAverage change of changed values:",
+"\nAverage change of changed structure top values:",
 mean(replace(putki_yhd_temp$yla-putki_yhd_temp$yla_db,
              putki_yhd_temp$yla-putki_yhd_temp$yla_db == 0, NA), na.rm=T)
 )
-
-
-cat("\nNo. of places where existing value got verified:\nGround:",
-sum(putki_yhd_temp$maa_source %in% "DB"), "\nPipe top:",
-sum(putki_yhd_temp$yla_source %in% "DB"))
-
-# How many structure top lenghts were approximated
-sum(putki_yhd_temp$putki_source %in% "MISSING")
-sum(!is.na(putki_yhd_temp$putki_source)) #out the total
 
 
 #rm(putki_yhd_temp)
