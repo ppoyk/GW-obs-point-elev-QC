@@ -7,6 +7,7 @@ hae_PaikkaAutomaattiManuaali <- function() {
   
   # Connect to db
   yhteys <- .connect_db(D$secrets)
+  on.exit(DBI::dbDisconnect(yhteys))
   
   # Get the linking table
   PaikkaAutomaattiManuaali <- DBI::dbGetQuery(

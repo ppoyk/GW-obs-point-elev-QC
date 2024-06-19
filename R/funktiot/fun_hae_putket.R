@@ -9,6 +9,7 @@
 hae_putket <- function(asema_id_lista, savepath = NULL) {
   # Yhdistetään tietokantaan
   yhteys <- .connect_db(D$secrets)
+  on.exit(DBI::dbDisconnect(yhteys))
   
   asema_id_lista <- paste(asema_id_lista, collapse = ",") # Muutetaan kirjain vektoriksi
   

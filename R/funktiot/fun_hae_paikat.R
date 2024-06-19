@@ -11,7 +11,7 @@ hae_paikat <- function(asema_id_lista = NULL, paikka_id_lista = NULL,
   
   # Yhdistetään tietokantaan
   yhteys <- .connect_db(D$secrets)
-
+  on.exit(DBI::dbDisconnect(yhteys))
   
   if (!is.null(asema_id_lista)) { # Check if asema_id supplied
     asema_id_lista <- paste(asema_id_lista, collapse = ",") # Muutetaan kirjain vektoriksi

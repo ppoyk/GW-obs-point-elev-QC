@@ -6,6 +6,9 @@
 hae_asematiedot <- function(as_idt = NULL, savepath = NULL, tstamp = FALSE) {
   # Yhdistetään tietokantaan
   yhteys <- .connect_db(D$secrets)
+  on.exit(DBI::dbDisconnect(yhteys))
+  
+  
   if (!is.null(as_idt)) as_idt <- paste(as_idt, collapse=",") #Convert to string for SQL
   
   # SQL-lause asemien hakuun
