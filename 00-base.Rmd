@@ -1341,6 +1341,57 @@ putki_yhd_temp <-
                    c("Pohjavesilammikko","Lähde","Ottamon hana",
                      "Talousvesihana", "Virtaamahavaintopaikka","Luminäyte"), ]
 
+# TODO Ensure that pairs of manual and autom. pipes have the same elev values
+link_am_man <- hae_PaikkaAutomaattiManuaali()
+vertaa_am_man <- data.frame(matrix(nrow=nrow(link_am_man), ncol=10))
+for (i in 1:nrow(link_am_man)) {
+  # Get ids from link table
+  a_id <- link_am_man[i, "AutomaattiPaikka_Id"]
+  m_id <- link_am_man[i, "ManuaaliPaikka_Id"]
+  
+  # Get place metadata values (also of those potentially dropped earlier)
+  p_a <- putki_yhd_temp[putki_yhd_trim$paikka_id == a_id, ]
+  p_m <- putki_yhd_temp[putki_yhd_trim$paikka_id == m_id, ]
+  
+  # If both am & man have been dropped previously, equality is not checked
+  if (nrow(p_a) == 0 && nrow(p_m) == 0) {
+    vertaa_am_man[i, ] <- NA
+  # If top elevs already equal, ensure that ground elevs are equal too
+  } else if (isTRUE(all.equal(p_a$yla, p_m$yla))) {
+    if (isTRUE(all.equal(p_a$maa, p_m$maa))) {
+        vertaa_am_man[i, ] <- NA
+    } else if (sum(c(p_a$maa_source, p_m$maa_source) =="DB") == 1) {
+      # Get the ground value to be used for both (am & man) places
+      new_maa <- eq_tester(p_a, p_m, "maa_source",should_eq="DB", out_var="maa")
+      # Assign to both (one already is correct, but advanced logic can be omitted)
+      putki_yhd_temp[putki_yhd_temp$paikka_id == a_id, "maa"] <- new_maa
+      putki_yhd_temp[putki_yhd_temp$paikka_id == m_id, "maa"] <- new_maa 
+
+      message(paste(eq_tester(p_a, p_m, "maa_source",should_eq="DB", out_var="maa"),
+                eq_tester(p_a, p_m, "maa_source",should_eq="DB", out_var="tunnus")))
+      
+    }
+  } else {
+    vertaa_am_man[i, ] <- c(p_a$tunnus, p_m$tunnus,
+                          p_a$yla, p_a$yla_source, p_m$yla, p_m$yla_source,
+                          p_a$maa, p_a$maa_source, p_m$maa, p_m$maa_source)
+  } 
+  
+}
+
+
+
+
+colnames(vertaa_am_man) <- c("tunnus_AM","tunnus_man",
+                             "AM_yla","AM_y_source","man_yla","man_y_source",
+                             "AM_maa","AM_m_source","man_maa","man_m_source")
+vertaa_am_man <- vertaa_am_man[!is.na(vertaa_am_man$tunnus_AM), ] #drop NA rows
+rm(a_id,m_id, p_a,p_m, new_maa)
+
+
+# Drop rows where man and autom. have matching elevs (0 diff)
+
+
 # Drop suspected bad ELY measurements (later possibly replaced with DTM and KM2 values)
 #bad_ely_elev <- putki_yhd_temp[putki_yhd_temp$yla_verif %in% c("ELY_IN_DB?"), ]
 # TODO jos ELYn mittauksen vertailutulokset ovat huonot , siirrytäänkö suoraan
