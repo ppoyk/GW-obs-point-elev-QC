@@ -146,10 +146,45 @@ hae_paikat <- function(asema_id_lista = NULL, paikka_id_lista = NULL,
     # Liitetään palautettavaan tauluun (ei mukaan otettuja uniikkeja sarakkeita luotavaksi)
     haetut_paikat <- dplyr::rows_patch(haetut_paikat, paikka_routa, by = "paikka_id")
   }
-    
+  
+  #################### Maankosteusputkien käsittely
+  ####################
+  if (any(haetut_paikat$PaikkaTyyppi_Id == "Maankosteusmittari")) {
+    # Valitaan vain routaputkien ID:t haetuista paikoista
+    mkost_idt <- haetut_paikat[haetut_paikat$PaikkaTyyppi_Id=="Maankosteusmittari", "paikka_id"]
+    mkost_idt <- paste(mkost_idt, collapse = ",")
+    paikka_mkost <- DBI::dbGetQuery(
+      yhteys,
+      stringr::str_glue(
+        p(readLines(f.path(D$secrets,"SQL","hae_paikat#Maankosteusmittari.txt")),#Query from file
+          collapse = " "),
+        mkost_idt = mkost_idt))
+    # Liitetään palautettavaan tauluun (sarakkeet nimetty yhtsopiviksi hakulauseessa)
+    haetut_paikat <- dplyr::rows_patch(haetut_paikat, paikka_mkost, by = "paikka_id")
+  }
+  
+  #################### Lysimetrien käsittely
+  ####################
+  if (any(haetut_paikat$PaikkaTyyppi_Id == "Lysimetri")) {
+    # Valitaan vain routaputkien ID:t haetuista paikoista
+    lysi_idt <- haetut_paikat[haetut_paikat$PaikkaTyyppi_Id=="Lysimetri", "paikka_id"]
+    lysi_idt <- paste(lysi_idt, collapse = ",")
+    paikka_lysi <- DBI::dbGetQuery(
+      yhteys,
+      stringr::str_glue(
+        p(readLines(f.path(D$secrets,"SQL","hae_paikat#Lysimetri.txt")),#Query from file
+          collapse = " "),
+        lysi_idt = lysi_idt))
+    # Calculate the sieve bottom (to concur with other types)
+    paikka_lysi[["SiivilaAla"]] <- paikka_lysi$SiivilaYla-paikka_lysi$SiivilaPituus
+    paikka_lysi$SiivilaPituus <- NULL
+    # Liitetään palautettavaan tauluun (sarakkeet nimetty yhtsopiviksi hakulauseessa)
+    haetut_paikat <- dplyr::rows_patch(haetut_paikat, paikka_lysi, by = "paikka_id")
+  }
+  
+  
   # TÄHÄN VOI LISÄTÄ KÄSITTELYT LOPUILLEKIN PAIKKATYYPEILLE
   # Lumikeppien paikoilla ei tyyppikohtaisia tietoja
-  # Lysimetrejä ja maankosteuspaikkoja hyvin vähän
   # Hanoja ei haluta mukaan tarkasteluun
   
   
@@ -187,9 +222,7 @@ hae_paikat <- function(asema_id_lista = NULL, paikka_id_lista = NULL,
     con = file.path(D$doc, "havaintopaikkojen_tietokantahaun_tiedot.txt"))
   }
   
-  # Suljetaan yhteys
-  DBI::dbDisconnect(yhteys)
-  rm(yhteys)
+
   
   return(haetut_paikat)
   
