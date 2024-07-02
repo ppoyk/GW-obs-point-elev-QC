@@ -1403,7 +1403,7 @@ colnames(vertaa_am_man) <- c("tunnus_AM","tunnus_man",
                              "AM_yla","AM_y_source","man_yla","man_y_source",
                              "AM_maa","AM_m_source","man_maa","man_m_source")
 vertaa_am_man <- vertaa_am_man[!is.na(vertaa_am_man$tunnus_AM), ] #drop NA rows
-rm(a_id,m_id, p_a,p_m, new_maa)
+rm(a_id,m_id, p_a,p_m, new_maa,new_yla, )
 
 
 # Drop rows where man and autom. have matching elevs (0 diff)
@@ -1414,7 +1414,7 @@ rm(a_id,m_id, p_a,p_m, new_maa)
 # TODO jos ELYn mittauksen vertailutulokset ovat huonot , siirrytäänkö suoraan
 # tarkistamaan korkeusmallien tarkastukseen, eikä oteta ELYä huomioon?
 
-# Drop also stations which have potentially other members/organisations utilizing
+# TODO Drop also stations which have potentially other members/organisations utilizing
 # the observations. (Old VHSP-stations)
 
 
@@ -1442,14 +1442,6 @@ putki_yhd_trim <- putki_yhd_trim[
 # All dropped cases above must be handled at a later date by communications and
 # manual data updates in cases where updating is deemed to be OK. 
 
-# TODO Ensure that pairs of manual and autom. pipes have the same elev values
-
-
-
-
-# Drop rows where man and autom. have matching elevs (0 diff)
-
-# TODO drop asemat joissa ei epäilyttäviä linkityksiä
 
 # Ei käsittelyyn mukaan vielä ELYjen mittausten vertailua 2022 tilanteeseen, eikä
 # niiden tapausten käsittelyä, joissa ELYjen mittaukset toleranssien ulkopuolella muista malleista
