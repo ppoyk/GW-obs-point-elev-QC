@@ -1351,8 +1351,8 @@ for (i in 1:nrow(link_am_man)) {
   a_id <- link_am_man[i, "AutomaattiPaikka_Id"]
   m_id <- link_am_man[i, "ManuaaliPaikka_Id"]
   # Get place metadata values (also of those potentially dropped earlier)
-  p_a <- putki_yhd_temp[putki_yhd_trim$paikka_id == a_id, ]
-  p_m <- putki_yhd_temp[putki_yhd_trim$paikka_id == m_id, ]
+  p_a <- putki_yhd_temp[putki_yhd_temp$paikka_id == a_id, ]
+  p_m <- putki_yhd_temp[putki_yhd_temp$paikka_id == m_id, ]
   
   # If both am & man have been dropped previously, equality is not checked
   if (nrow(p_a) == 0 && nrow(p_m) == 0) {
@@ -1406,14 +1406,14 @@ rm(a_id,m_id, p_a,p_m, new_maa)
 
 
 # Drop select VARELY autom.devices.(observations are uploaded via custom process)
-putki_yhd_temp <- putki_yhd_temp[!putki_yhd_temp$paikka_id %in%
+putki_yhd_trim <- putki_yhd_temp[!putki_yhd_temp$paikka_id %in%
                                    c(52191, 52845, 54763, 59979, 59983, 60177,
                                      59788, 62327, 66770, 74869, 75020, 75021), ]
 # Drop quality monitoring pipes at most stations
 # (gw elevs sent wrong, timeseries would break if top elev changes)
 # (should include SeSu places)
-putki_yhd_temp <- putki_yhd_temp[
-  !putki_yhd_temp$paikka_id %in%
+putki_yhd_trim <- putki_yhd_trim[
+  !putki_yhd_trim$paikka_id %in%
     c(7781, 7775, 7779, 41028, 3453, 3454, 2615, 2616, 3455, 3456, 2617, 9167,
       9169, 5006, 4208, 7769, 11739, 40032, 40017, 37314, 78135, 7768, 47180,
       54272, 88516, 82298, 45946, 14522, 69447, 58880, 88501, 7777, 7772, 7764,
@@ -1446,7 +1446,7 @@ putki_yhd_temp <- putki_yhd_temp[
 
 
 test <-
-  putki_yhd_temp[,c("paikka_id","asema_tunnus","asema_nimi","tunnus","PaikkaTyyppi_Id",
+  putki_yhd_trim[,c("paikka_id","asema_tunnus","asema_nimi","tunnus","PaikkaTyyppi_Id",
                     "yla_db","putki","maa_verif","yla_verif")]
 test <- merge(test,
               kaikki_paikat[,c("paikka_id","yhd_yla","KorkeusMaa","yhd_maa","dtm_elev","km2_elev")],
@@ -1465,7 +1465,7 @@ rm(test)
 #### Save the collated pipe top and ground elevation file
 # Select only required cols
 putki_korkeudet_outfile <-
-  putki_yhd_temp[ ,c("paikka_id","tunnus","asema_tunnus","asema_nimi",
+  putki_yhd_trim[ ,c("paikka_id","tunnus","asema_tunnus","asema_nimi",
                      "PaikkaTyyppi_Id","yla","yla_source","yla_verif",
                      "maa","maa_source","maa_verif","KM2_laatu")]
 
