@@ -1322,7 +1322,7 @@ putki_yhd_temp <- merge(
 
 ```
 
-``` {r clean-&-save-elevation-table}
+``` {r clean-elevation-table}
 
 # Remove top elevs for locations other than wells and monitoring pipes
 for (i in 1:nrow(putki_yhd_temp)) {
@@ -1348,7 +1348,6 @@ for (i in 1:nrow(link_am_man)) {
   # Get ids from link table
   a_id <- link_am_man[i, "AutomaattiPaikka_Id"]
   m_id <- link_am_man[i, "ManuaaliPaikka_Id"]
-  
   # Get place metadata values (also of those potentially dropped earlier)
   p_a <- putki_yhd_temp[putki_yhd_trim$paikka_id == a_id, ]
   p_m <- putki_yhd_temp[putki_yhd_trim$paikka_id == m_id, ]
@@ -1438,6 +1437,10 @@ putki_yhd_temp <- putki_yhd_temp[
 # niiden tapausten käsittelyä, joissa ELYjen mittaukset toleranssien ulkopuolella muista malleista
 # Kaikki ELYn mittaukset joissa sekä yläpää että maanpinta täsmää tietokantaan, pudotetaan pois
 
+```
+
+
+```{r save-elevation-table}
 
 
 test <-
