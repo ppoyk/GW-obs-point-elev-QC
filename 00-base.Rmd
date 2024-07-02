@@ -1345,7 +1345,15 @@ putki_yhd_temp <-
 
 # TODO Ensure that pairs of manual and autom. pipes have the same elev values
 link_am_man <- hae_PaikkaAutomaattiManuaali()
-vertaa_am_man <- data.frame(matrix(nrow=nrow(link_am_man), ncol=10))
+vertaa_am_man <- data.frame(matrix(nrow=nrow(link_am_man), ncol=10))#Table of discrepancies
+
+yla_src_priority <- c("Pietari","DB","ELY","DTM+ELY","DTM+DB","DTM+MISSING",
+                      "KM2+ELY","KM2+DB","KM2+MISSING")
+maa_src_priority <- c("Pietari-Pietari","DB-Pietari","DB-ELY","DB","DB-MISSING",
+                      "ELY","DTM","KM2")
+diff_lim <- 1
+
+
 for (i in 1:nrow(link_am_man)) {
   # Get ids from link table
   a_id <- link_am_man[i, "AutomaattiPaikka_Id"]
@@ -1361,23 +1369,31 @@ for (i in 1:nrow(link_am_man)) {
   } else if (isTRUE(all.equal(p_a$yla, p_m$yla))) {
     if (isTRUE(all.equal(p_a$maa, p_m$maa))) {
         vertaa_am_man[i, ] <- NA
-    } else if (sum(c(p_a$maa_source, p_m$maa_source) =="DB") == 1) {
-      # Get the ground value to be used for both (am & man) places
-      new_maa <- eq_tester(p_a, p_m, "maa_source",should_eq="DB", out_var="maa")
-      # Assign to both (one already is correct, but advanced logic can be omitted)
-      putki_yhd_temp[putki_yhd_temp$paikka_id == a_id, "maa"] <- new_maa
-      putki_yhd_temp[putki_yhd_temp$paikka_id == m_id, "maa"] <- new_maa 
-
-      message(paste(eq_tester(p_a, p_m, "maa_source",should_eq="DB", out_var="maa"),
-                eq_tester(p_a, p_m, "maa_source",should_eq="DB", out_var="tunnus")))
-      
+    } else {
+      # Compare ground elevation sources
+      for (src in maa_src_priority) {
+        # Start comparison once the first prioritised source is matched
+        if ((p_a$maa_source) || (p_m$maa_source == src)) {
+          new_maa <- eq_tester(p_a, p_m, "maa_source",should_eq=src, out_var="maa")
+          if (abs(p_a$maa-new_maa) > diff_lim || abs(p_m$maa-new_maa) > diff_lim) stop()
+          putki_yhd_temp[putki_yhd_temp$paikka_id == a_id, "maa"] <- new_maa
+          putki_yhd_temp[putki_yhd_temp$paikka_id == m_id, "maa"] <- new_maa
+          break # Stop looking for further prioritised sources once 1 is found
+        }
+      }
     }
   } else {
-    vertaa_am_man[i, ] <- c(p_a$tunnus, p_m$tunnus,
-                          p_a$yla, p_a$yla_source, p_m$yla, p_m$yla_source,
-                          p_a$maa, p_a$maa_source, p_m$maa, p_m$maa_source)
-  } 
-  
+    for (src in yla_src_priority) {
+        # Start comparison once the first prioritised source is matched
+        if ((p_a$yla_source ==src) || (p_m$yla_source == src)) {
+          new_yla <- eq_tester(p_a, p_m, "yla_source",should_eq=src, out_var="yla")
+          if (abs(p_a$yla-new_yla) > diff_lim || abs(p_m$yla-new_yla) > diff_lim) stop()
+          putki_yhd_temp[putki_yhd_temp$paikka_id == a_id, "yla"] <- new_yla
+          putki_yhd_temp[putki_yhd_temp$paikka_id == m_id, "yla"] <- new_yla
+          break # Stop looking for further prioritised sources once 1 is found
+        }
+    }
+  }
 }
 
 
