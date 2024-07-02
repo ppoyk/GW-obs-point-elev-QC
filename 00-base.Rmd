@@ -1130,8 +1130,8 @@ for (i in 1:nrow(kaikki_paikat)) {
   putki      <- putki_yhd_temp[i,"putki"]
   putki_source <- putki_yhd_temp[i,"putki_source"]
   # Init new vars so they exist (though should get new value by the end of a loop iter)
-  yla<-NA; yla_source<-NA; yla_verif<-NA # New value of the pipe top elevation
-  maa<-NA; maa_source<-NA; maa_verif<-NA # New value of the ground elevation
+  yla <- yla_source <- yla_verif <- NA # New value of the pipe top elevation
+  maa <- maa_source <- maa_verif <- NA # New value of the ground elevation
   
   # Check if own measurements are available
   if (yhd_source %in% "Pietari") {
@@ -1283,6 +1283,8 @@ for (i in 1:nrow(kaikki_paikat)) {
       maa_verif <- "NO_SOURCES"
     } else maa_verif <- "CHECKS_FAILED"
   }
+  # Fix source showing as added and then subtracted from the ground source text
+  maa_source <- sub("^([A-Z].*)\\+(.*)-\\2$", "\\1", maa_source)
     
   # Assign loop variables to the correct location in the collection table
   putki_yhd_temp[i, "yla"]        <- yla
