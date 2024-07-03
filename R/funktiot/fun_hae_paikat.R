@@ -175,17 +175,18 @@ hae_paikat <- function(asema_id_lista = NULL, paikka_id_lista = NULL,
         p(readLines(f.path(D$secrets,"SQL","hae_paikat#Lysimetri.txt")),#Query from file
           collapse = " "),
         lysi_idt = lysi_idt))
-    # Calculate the sieve bottom (to concur with other types)
+    # Calculate the sieve and pipe bottom (to concur with other types)
     paikka_lysi[["SiivilaAla"]] <- paikka_lysi$SiivilaYla-paikka_lysi$SiivilaPituus
     paikka_lysi$SiivilaPituus <- NULL
+    paikka_lysi[["Ala"]] <- paikka_lysi$PutkiYla - paikka_lysi$PutkiPituus
+    paikka_lysi$PutkiPituus <- paikka_lysi$SiivilaPituus <- NULL
     # Liitetään palautettavaan tauluun (sarakkeet nimetty yhtsopiviksi hakulauseessa)
     haetut_paikat <- dplyr::rows_patch(haetut_paikat, paikka_lysi, by = "paikka_id")
   }
   
-  
   # TÄHÄN VOI LISÄTÄ KÄSITTELYT LOPUILLEKIN PAIKKATYYPEILLE
-  # Lumikeppien paikoilla ei tyyppikohtaisia tietoja
-  # Hanoja ei haluta mukaan tarkasteluun
+  # (Lumikeppien paikoilla ei tyyppikohtaisia tietoja)
+  # (Hanoja ei haluta mukaan tarkasteluun)
   
   
   # Korvataan palautettavan taulun kautta-merkit tekstistä viivalla,
