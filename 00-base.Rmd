@@ -167,7 +167,7 @@ if (USERCONF$pakota_lataus_paikkatiedot || file.exists(PaikkaTyyppi_path)) {
                      file = file.path(PaikkaTyyppi_path),
                      na = NA, bom = T)
 }
-
+rm(PaikkaTyyppi_path)
 
 
 dir_paikat <- file.path(D$data, "kaikki_paikat.csv")
@@ -707,14 +707,13 @@ if ("km2_elev" %in% names(kaikki_paikat))
   kaikki_paikat$km2_elev <- NULL # Wipe col if exists from prev run
 # Join (/re-join)
 kaikki_paikat <- merge(kaikki_paikat, km2_elevs, by="paikka_id")
+rm(km2_elevs)
 
 # Elevations from KM2 not shifted like LAS-DTM elevations.
 # Spread of errors in KM2 vs. reference measurements too large.
 
 message("KM2 elevation model elevations read for all points")
 message("Ilmoitukset 'proj_create_from_database:' ei pitäisi haitata")
-rm(km2_elevs)
-
 ```
 
 ```{r KM2-aineiston-luokittelun-kirjaaminen}
@@ -1028,7 +1027,7 @@ legend(0.6, 5, legend=c("Lidar-DTM","KM2"), col=c("black","dodgerblue"), lty=1,l
 dev.off()
 
 
-rm(a, b, r, bwid, xlims, lon_err, lat_err)
+rm(a, b, r, bwid, xlims, lon_err, lat_err, km2_dir)
 ```
 
 

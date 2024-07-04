@@ -339,7 +339,7 @@ for (lim in sort(unique(ref_GPS$Vt_Prec), decreasing = T)) {
   newrow <- cbind(lim, count, do.call(cbind, dtm_maxerror))
   dtm_maxerror_prog <- rbind(dtm_maxerror_prog, newrow)
 }
-rm(lim, refgps2, newrow, dtm_MAE, dtm_RMSE, dtm_maxerror)
+rm(lim, refgps2, newrow, dtm_MAE, dtm_RMSE, dtm_maxerror, count)
 
 
 
