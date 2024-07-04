@@ -1260,6 +1260,14 @@ for (i in 1:nrow(kaikki_paikat)) {
     }
   }
   
+  # If none alternative top elev sources are available, use the db value
+  # (Should only apply to those which lack the DTM and KM2 files)
+  if (all(is.na(c(yhd_yla,yhd_maa,yhd_source, km2_elev,dtm_elev)))) {
+    yla <- yla_db
+    yla_source <- "DB"
+    yla_verif <- "NO_SOURCES"
+  }
+  
   
   # Get / calculate ground surface elevation
   # Set ground elevations based on pipe top - pipe visible section
