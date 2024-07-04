@@ -6,7 +6,7 @@
 hae_asematiedot <- function(as_idt = NULL, savepath = NULL, tstamp = FALSE) {
   # Yhdistetään tietokantaan
   yhteys <- .connect_db(D$secrets)
-  on.exit(DBI::dbDisconnect(yhteys))
+  on.exit(DBI::dbDisconnect(yhteys)) # Suljetaan yhteys funktion lopussa
   
   
   if (!is.null(as_idt)) as_idt <- paste(as_idt, collapse=",") #Convert to string for SQL
@@ -48,10 +48,6 @@ hae_asematiedot <- function(as_idt = NULL, savepath = NULL, tstamp = FALSE) {
               gsub(root,"",this.path::this.path()))),
       con = file.path(D$doc, "asemien_tietokantahaun_tiedot.txt"))
   }
-  
-  # Suljetaan yhteys
-  DBI::dbDisconnect(yhteys)
-  rm(yhteys)
   
   return(asemataulu)
 }

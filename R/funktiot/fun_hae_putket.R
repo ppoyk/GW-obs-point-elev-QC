@@ -9,7 +9,7 @@
 hae_putket <- function(asema_id_lista, savepath = NULL) {
   # Yhdistetään tietokantaan
   yhteys <- .connect_db(D$secrets)
-  on.exit(DBI::dbDisconnect(yhteys))
+  on.exit(DBI::dbDisconnect(yhteys)) # Suljetaan yhteys funktiosta poistuttaessa
   
   asema_id_lista <- paste(asema_id_lista, collapse = ",") # Muutetaan kirjain vektoriksi
   
@@ -55,10 +55,6 @@ hae_putket <- function(asema_id_lista, savepath = NULL) {
       message("Haetut paikkojen tiedot tallennettu:", savepath)
     } else stop("Paikkojen tietojen tallennusyritys epäonnistui:", savepath, call. = F)
   }
-  
-  # Suljetaan yhteys
-  DBI::dbDisconnect(yhteys)
-  rm(yhteys)
   
   return(haetut_putket)
 }
