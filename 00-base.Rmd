@@ -1054,8 +1054,10 @@ for (i in 1:nrow(kaikki_paikat)) {
     putki_yhd_temp[i,"putki_source"] <- kaikki_paikat[i, "yhd_source"]
   }
   else if (!is.na(kaikki_paikat[i,"db_putki"])) { #If no ELY/own msrmnt, get from db
-    # Also check that length is positive(>10cm) and not exactly 1m (oft-used paceholder)
-    if (kaikki_paikat[i,"db_putki"] > 0.1 && kaikki_paikat[i,"db_putki"] != 1.000) {
+    # Also check that length is OK(10cm-2m) and not exactly 1m (oft-used placeholder)
+    if (kaikki_paikat[i,"db_putki"] > 0.1 &&
+        kaikki_paikat[i,"db_putki"] < 2 &&
+        kaikki_paikat[i,"db_putki"] != 1.000) {
       putki_yhd_temp[i,"putki"] <- kaikki_paikat[i, "db_putki"]
       putki_yhd_temp[i,"putki_source"] <- "DB" # Note database as the source
     } else { # If length in database not positive or exact 1m, set to 1m and note as missing
