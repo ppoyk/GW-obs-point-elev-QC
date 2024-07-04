@@ -3,21 +3,29 @@
 # Definitions mostly belonging to base-package
 
 
-# paste
+# pastes
 p <- function(..., sep = " ", collapse = NULL, recycle0 = FALSE)
   paste(..., sep = sep, collapse = collapse, recycle0 = recycle0)
 
-# paste0
 p0 <- function(...,            collapse = NULL, recycle0 = FALSE)
   paste0(...,            collapse = collapse, recycle0 = recycle0)
 
 
-# as.numeric
+# numerics
 as.num <- function(x, ...)
   as.numeric(x = x, ...)
-# is.numeric
 is.num <- function(x)
   is.numeric(x = x)
+
+# characters
+as.char <- function(x)
+  as.character(x = x)
+is.char <- function(x)
+  is.character(x = x)
+
+# logicals
+isT <- function(x)
+  isTRUE(x = x)
 
 # file.path
 f.path <- function(..., fsep = .Platform$file.sep) 
