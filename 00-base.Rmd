@@ -681,7 +681,7 @@ kaikki_paikat <- merge(kaikki_paikat, dtm_elev, by = "paikka_id")
 
 
 
-```{r KM2-lataaminen-ja-lukeminen}
+```{r KM2-lataaminen-ja-lukeminen, message=FALSE, include=FALSE}
 
 # Code below downloads KM2 elevation model data from station and observation
 # location coordinates.
