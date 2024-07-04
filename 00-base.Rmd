@@ -1131,8 +1131,8 @@ for (i in 1:nrow(kaikki_paikat)) {
   putki      <- putki_yhd_temp[i,"putki"]
   putki_source <- putki_yhd_temp[i,"putki_source"]
   # Init new vars so they exist (though should get new value by the end of a loop iter)
-  yla<-NA; yla_source<-NA; yla_verif<-NA # New value of the pipe top elevation
-  maa<-NA; maa_source<-NA; maa_verif<-NA # New value of the ground elevation
+  yla <- yla_source <- yla_verif <- NA # New value of the pipe top elevation
+  maa <- maa_source <- maa_verif <- NA # New value of the ground elevation
   
   # Check if own measurements are available
   if (yhd_source %in% "Pietari") {
@@ -1292,6 +1292,8 @@ for (i in 1:nrow(kaikki_paikat)) {
       maa_verif <- "NO_SOURCES"
     } else maa_verif <- "CHECKS_FAILED"
   }
+  # Fix source showing as added and then subtracted from the ground source text
+  maa_source <- sub("^([A-Z].*)\\+(.*)-\\2$", "\\1", maa_source)
     
   # Assign loop variables to the correct location in the collection table
   putki_yhd_temp[i, "yla"]        <- yla
@@ -1331,7 +1333,7 @@ putki_yhd_temp <- merge(
 
 ```
 
-``` {r clean-&-save-elevation-table}
+``` {r clean-elevation-table}
 
 # Remove top elevs for locations other than wells and monitoring pipes
 for (i in 1:nrow(putki_yhd_temp)) {
@@ -1355,12 +1357,90 @@ putki_yhd_temp <- putki_yhd_temp[!putki_yhd_temp$PaikkaTyyppi_Id %in%
                    c("Maankosteusmittari"), ]
 
 
+# TODO Ensure that pairs of manual and autom. pipes have the same elev values
+link_am_man <- hae_PaikkaAutomaattiManuaali()
+vertaa_am_man <- data.frame(matrix(nrow=nrow(link_am_man), ncol=10))#Table of discrepancies
+
+yla_src_priority <- c("Pietari","DB","ELY","DTM+ELY","DTM+DB","DTM+MISSING",
+                      "KM2+ELY","KM2+DB","KM2+MISSING")
+maa_src_priority <- c("Pietari-Pietari","DB-Pietari","DB-ELY","DB","DB-MISSING",
+                      "ELY","DTM","KM2")
+diff_lim <- 1
+
+
+for (i in 1:nrow(link_am_man)) {
+  # Get ids from link table
+  a_id <- link_am_man[i, "AutomaattiPaikka_Id"]
+  m_id <- link_am_man[i, "ManuaaliPaikka_Id"]
+  # Get place metadata values (also of those potentially dropped earlier)
+  p_a <- putki_yhd_temp[putki_yhd_temp$paikka_id == a_id, ]
+  p_m <- putki_yhd_temp[putki_yhd_temp$paikka_id == m_id, ]
+  
+  # If both am & man have been dropped previously, equality is not checked
+  tryCatch(
+    {
+      
+  if (nrow(p_a) == 0 && nrow(p_m) == 0) {
+    vertaa_am_man[i, ] <- NA
+  # If top elevs already equal, ensure that ground elevs are equal too
+  } else if (isTRUE(all.equal(p_a$yla, p_m$yla))) {
+    if (isTRUE(all.equal(p_a$maa, p_m$maa))) {
+        vertaa_am_man[i, ] <- NA
+    } else {
+      # Compare ground elevation sources
+      for (src in maa_src_priority) {
+        # Start comparison once the first prioritised source is matched
+        if ((p_a$maa_source == src) || (p_m$maa_source == src)) {
+          new_maa <- eq_tester(p_a, p_m, "maa_source",should_eq=src, out_var="maa")
+          if (abs(p_a$maa-new_maa) > diff_lim || abs(p_m$maa-new_maa) > diff_lim) stop()
+          putki_yhd_temp[putki_yhd_temp$paikka_id == a_id, "maa"] <- new_maa
+          putki_yhd_temp[putki_yhd_temp$paikka_id == m_id, "maa"] <- new_maa
+          break # Stop looking for further prioritised sources once 1 is found
+        }
+      }
+    }
+  } else {
+    for (src in yla_src_priority) {
+        # Start comparison once the first prioritised source is matched
+        if ((p_a$yla_source == src) || (p_m$yla_source == src)) {
+          new_yla <- eq_tester(p_a, p_m, "yla_source",should_eq=src, out_var="yla")
+          if (abs(p_a$yla-new_yla) > diff_lim || abs(p_m$yla-new_yla) > diff_lim) stop()
+          putki_yhd_temp[putki_yhd_temp$paikka_id == a_id, "yla"] <- new_yla
+          putki_yhd_temp[putki_yhd_temp$paikka_id == m_id, "yla"] <- new_yla
+          break # Stop looking for further prioritised sources once 1 is found
+        }
+    }
+  }
+  
+    }
+  ,finally= {
+    vertaa_am_man[i, ] <- c(p_a$tunnus, p_m$tunnus,
+                            p_a$yla,p_a$yla_source, p_m$yla,p_m$yla_source, new_yla
+                            p_a$maa,p_a$maa_source, p_m$maa,p_m$maa_source, new_maa)
+  }
+    )
+  
+}
+
+
+
+
+colnames(vertaa_am_man) <- c("tunnus_AM","tunnus_man",
+                             "AM_yla","AM_y_source","man_yla","man_y_source","new_yla"
+                             "AM_maa","AM_m_source","man_maa","man_m_source","new_maa")
+vertaa_am_man <- vertaa_am_man[!is.na(vertaa_am_man$tunnus_AM), ] #drop NA rows
+rm(a_id,m_id, p_a,p_m, new_maa,new_yla, )
+
+
+# Drop rows where man and autom. have matching elevs (0 diff)
+
+
 # Drop suspected bad ELY measurements (later possibly replaced with DTM and KM2 values)
 #bad_ely_elev <- putki_yhd_temp[putki_yhd_temp$yla_verif %in% c("ELY_IN_DB?"), ]
 # TODO jos ELYn mittauksen vertailutulokset ovat huonot , siirrytäänkö suoraan
 # tarkistamaan korkeusmallien tarkastukseen, eikä oteta ELYä huomioon?
 
-# Drop also stations which have potentially other members/organisations utilizing
+# TODO Drop also stations which have potentially other members/organisations utilizing
 # the observations. (Old VHSP-stations)
 
 
@@ -1368,14 +1448,14 @@ putki_yhd_temp <- putki_yhd_temp[!putki_yhd_temp$PaikkaTyyppi_Id %in%
 
 
 # Drop select VARELY autom.devices.(observations are uploaded via custom process)
-putki_yhd_temp <- putki_yhd_temp[!putki_yhd_temp$paikka_id %in%
+putki_yhd_trim <- putki_yhd_temp[!putki_yhd_temp$paikka_id %in%
                                    c(52191, 52845, 54763, 59979, 59983, 60177,
                                      59788, 62327, 66770, 74869, 75020, 75021), ]
 # Drop quality monitoring pipes at most stations
 # (gw elevs sent wrong, timeseries would break if top elev changes)
 # (should include SeSu places)
-putki_yhd_temp <- putki_yhd_temp[
-  !putki_yhd_temp$paikka_id %in%
+putki_yhd_trim <- putki_yhd_trim[
+  !putki_yhd_trim$paikka_id %in%
     c(7781, 7775, 7779, 41028, 3453, 3454, 2615, 2616, 3455, 3456, 2617, 9167,
       9169, 5006, 4208, 7769, 11739, 40032, 40017, 37314, 78135, 7768, 47180,
       54272, 88516, 82298, 45946, 14522, 69447, 58880, 88501, 7777, 7772, 7764,
@@ -1401,10 +1481,14 @@ putki_yhd_temp <- putki_yhd_temp[
 # niiden tapausten käsittelyä, joissa ELYjen mittaukset toleranssien ulkopuolella muista malleista
 # Kaikki ELYn mittaukset joissa sekä yläpää että maanpinta täsmää tietokantaan, pudotetaan pois
 
+```
+
+
+```{r save-elevation-table}
 
 
 test <-
-  putki_yhd_temp[,c("paikka_id","asema_tunnus","asema_nimi","tunnus","PaikkaTyyppi_Id",
+  putki_yhd_trim[,c("paikka_id","asema_tunnus","asema_nimi","tunnus","PaikkaTyyppi_Id",
                     "yla_db","putki","maa_verif","yla_verif")]
 test <- merge(test,
               kaikki_paikat[,c("paikka_id","yhd_yla","KorkeusMaa","yhd_maa","dtm_elev","km2_elev")],
@@ -1423,7 +1507,7 @@ rm(test)
 #### Save the collated pipe top and ground elevation file
 # Select only required cols
 putki_korkeudet_outfile <-
-  putki_yhd_temp[ ,c("paikka_id","tunnus","asema_tunnus","asema_nimi",
+  putki_yhd_trim[ ,c("paikka_id","tunnus","asema_tunnus","asema_nimi",
                      "PaikkaTyyppi_Id","yla","yla_source","yla_verif",
                      "maa","maa_source","maa_verif","KM2_laatu")]
 
