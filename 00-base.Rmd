@@ -1350,6 +1350,10 @@ putki_yhd_temp <-
   putki_yhd_temp[!putki_yhd_temp$PaikkaTyyppi_Id %in%
                    c("Pohjavesilammikko","Lähde","Ottamon hana",
                      "Talousvesihana", "Virtaamahavaintopaikka","Luminäyte"), ]
+# Drop ground moisture meters (only 25 in the whole database)
+putki_yhd_temp <- putki_yhd_temp[!putki_yhd_temp$PaikkaTyyppi_Id %in%
+                   c("Maankosteusmittari"), ]
+
 
 # Drop suspected bad ELY measurements (later possibly replaced with DTM and KM2 values)
 #bad_ely_elev <- putki_yhd_temp[putki_yhd_temp$yla_verif %in% c("ELY_IN_DB?"), ]
@@ -1391,7 +1395,7 @@ putki_yhd_temp <- putki_yhd_temp[
 
 # Drop rows where man and autom. have matching elevs (0 diff)
 
-# TODO drop asemat joissa ei epäilyttäviä linkityksiä
+# TODO drop asemat joissa epäilyttäviä linkityksiä
 
 # Ei käsittelyyn mukaan vielä ELYjen mittausten vertailua 2022 tilanteeseen, eikä
 # niiden tapausten käsittelyä, joissa ELYjen mittaukset toleranssien ulkopuolella muista malleista
