@@ -11,8 +11,8 @@ Authors@R: c(
         "Suomen ympäristökeskus, Finnish Environment Institute", "Syke",
         role = c("fnd", "cph)))
 Description: Scientific analysis script formatted in a package-like structure. This code is a part of the quality control work done to the metadata of physical structures in the hydrological groundwater monitoring network of Syke. It utilises precise field measurements of the structures, as well as national elevation data to verify the current coordinate and elevation values of the structures in the database. The elevation source confidence intervals are also evaluated based on said measurements.
-URL: https://github.com/ppoyk/putkitietojen-laadunvarmennus
-BugReports: https://github.com/ppoyk/putkitietojen-laadunvarmennus/issues
+URL: https://github.com/ppoyk/GW-obs-point-elev-QC
+BugReports: https://github.com/ppoyk/GW-obs-point-elev-QC/issues
 License: See LICENSE
 Depends:
     R (>= 4.0.0),
