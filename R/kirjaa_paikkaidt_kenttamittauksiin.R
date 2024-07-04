@@ -3,13 +3,13 @@
 
 # Tuodaan ELYjen tekemien kenttäkartoitusten tiedot, jotka manuaalisesti yhdistetty ja trimmattu
 # (nimetty uudelleen ne automaattikohteet manuaaleiksi joilla ei vastaavaa manuaaliriviä, poistettu muut AM ja kaivot)
-kenttamittaukset <- data.table::fread(
-  file = file.path(D$data, "kenttamittaukset_raw.csv"),
+
+kenttamittaukset <- readxl::read_xlsx(
+  file.path(D$data, "kenttamittaukset_raw.xlsx"),
   skip = 1, # Skipataan kommenttikenttä
-  header = TRUE,
-  na.strings = c("NA", ""), blank.lines.skip = TRUE,
-  keepLeadingZeros = TRUE,
-  encoding = "UTF-8")
+  col_names = TRUE, # Headers
+  na = c("NA","") # Detect NAs
+  ) |> data.table::as.data.table()
 
 # Tehdään tarvittavat muotoilut taululle. 
 # (excelissä tyhjiä rivejä jaotteluun, ja cm-lukemia kopioitu ELYjen exceleistä)
@@ -18,10 +18,11 @@ kenttamittaukset <- data.table::fread(
 for (col in names(kenttamittaukset)) {
   if (all(is.na(kenttamittaukset[[col]])))
     kenttamittaukset[ , col] <- NULL
-}
+  }
 
 # Suodatetaan pois tyhjät rivit
 kenttamittaukset <- kenttamittaukset[!is.na(asema_nimi), ]
+
 # Muutetaan senttimetrit metreiksi, ja poistetaan vanhat sarakkeet
 putki_cmkorj <- kenttamittaukset$putki_ely / 100
 kenttamittaukset[["putki_ely"]] <- putki_cmkorj
