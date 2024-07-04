@@ -71,14 +71,14 @@ vt_err_v_prec <-
   ggplot(ref_kp, aes(x=Vt_Prec, y=vt_ero, color=kiintopistetunnus)) +
   geom_point(shape=1, size=3) +
   geom_abline(slope=c(1,-1),intercept=0, linetype=2) +
-  geom_hline(yintercept=0, size=1) + coord_cartesian(ylim=c(-0.05, 0.05)) +
+  geom_hline(yintercept=0, linewidth=1) + coord_cartesian(ylim=c(-0.05, 0.05)) +
   labs(y="Vt. Error (N2000) [m]",x="Vt. Precision [m]") +
   theme_classic() + theme(legend.position="none")
 vt_err_v_prec_transf <-
   ggplot(ref_kp,aes(x=Vt_Prec, y=vt_transf_ero, color=kiintopistetunnus)) +
   geom_point(shape=1, size=3) +
   geom_abline(slope=c(1,-1),intercept=0, linetype=2) +
-  geom_hline(yintercept=0, size=1) + coord_cartesian(ylim=c(-0.05, 0.05)) +
+  geom_hline(yintercept=0, linewidth=1) + coord_cartesian(ylim=c(-0.05, 0.05)) +
   labs(y="Vt. Error (GRS80h to N2000) [m]",x="Vt. Precision [m]") +
   theme_classic() + theme(legend.position="none")
 # Lon Lat coordinates
@@ -86,14 +86,14 @@ lon_err_v_prec <-
   ggplot(ref_kp, aes(x=Hz_Prec, y=lon_ero, color=kiintopistetunnus)) +
 geom_point(shape=1, size=3) +
   geom_abline(slope=c(1,-1),intercept=0, linetype=2) + 
-  geom_hline(yintercept=0, size=1) + coord_cartesian(ylim=c(-0.1, 0.1)) +
+  geom_hline(yintercept=0, linewidth=1) + coord_cartesian(ylim=c(-0.1, 0.1)) +
   labs(y="Easting Error (ETRS-TM35FIN) [m]",x="Hz. Precision [m]") +
   theme_classic() + theme(legend.position="none")
 lat_err_v_prec <-
   ggplot(ref_kp, aes(x=Hz_Prec, y=lat_ero, color=kiintopistetunnus)) +
   geom_point(shape=1, size=3) +
   geom_abline(slope=c(1,-1),intercept=0, linetype=2) +
-  geom_hline(yintercept=0, size=1) + coord_cartesian(ylim=c(-0.1, 0.1)) +
+  geom_hline(yintercept=0, linewidth=1) + coord_cartesian(ylim=c(-0.1, 0.1)) +
   labs(y="Northing Error (ETRS-TM35FIN) [m]",x="Hz. Precision [m]") +
   theme_classic() + theme(legend.position="none")
 save2(vt_err_v_prec,
