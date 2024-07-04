@@ -1335,8 +1335,9 @@ putki_yhd_temp <- merge(
 
 # Remove top elevs for locations other than wells and monitoring pipes
 for (i in 1:nrow(putki_yhd_temp)) {
-  # Check that type is NOT monitoring pipe or well
-  if (!putki_yhd_temp[i, "PaikkaTyyppi_Id"] %in% c("Havaintoputki","Kaivo")) {
+  # Check that type is NOT monitoring pipe (incl. some mstre meters) or well
+  if (!putki_yhd_temp[i, "PaikkaTyyppi_Id"] %in%
+      c("Havaintoputki","Kaivo","Maankosteusmittari")) {
     # Set NA to all cols relating to "pipe" top value
     putki_yhd_temp[i,
                    c("db_putki","putki","putki_source",
