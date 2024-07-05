@@ -26,9 +26,10 @@ is.char <- function(x)
 # logicals
 isT <- function(x)
   isTRUE(x = x)
+all.eq <- function(target, current, ...) 
+  all.equal(target = target, current = current, ...)
 
 # file.path
 f.path <- function(..., fsep = .Platform$file.sep) 
   file.path(..., fsep = fsep)
-
 
