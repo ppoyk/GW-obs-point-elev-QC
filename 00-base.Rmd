@@ -500,10 +500,14 @@ db_koord <- data.table::fread(
 db_koord <- db_koord[
   db_koord$paikka_id %in% yhd_mittaukset$paikka_id, ]
 
+
 # Sort both (old db values and field measurements) for calculating differences
 db_koord <- db_koord[with(db_koord, order(paikka_id)), ]
 kent <- yhd_mittaukset[with(yhd_mittaukset, order(paikka_id)),
                        c("paikka_id","asema_nimi","asema_tunnus","tunnus","yhd_lat","yhd_lon") ]
+# Drop excess comparative places (which were not included in the snapshot)
+kent <- kent[kent$paikka_id %in% db_koord$paikka_id, ]
+
 stopifnot(all.equal(db_koord$paikka_id, kent$paikka_id))
 
 # Calculate distances to cached database coordinates
