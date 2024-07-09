@@ -850,6 +850,7 @@ x <- seq(0,1, length.out = nrow(kaikki_paikat)) |>
 lon_err <- r*cos(2*pi*x) # Calculate lon and lat error shifts separately
 lat_err <- r*sin(2*pi*x)
 ggplot()+geom_point(aes(x=lat_err, y=lon_err)) # Confirm that works as intended
+rm(x, lon_err, lat_err)
 
 
 # Uniform distribution inside a circle (the used coord shift method)

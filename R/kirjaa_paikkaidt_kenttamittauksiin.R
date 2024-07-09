@@ -16,9 +16,11 @@ kenttamittaukset <- readxl::read_xlsx(
 
 # Drop cols with all NA (unknown reason for why these appear)
 for (col in names(kenttamittaukset)) {
-  if (all(is.na(kenttamittaukset[[col]])))
+  if (all(is.na(kenttamittaukset[[col]]))) {
     kenttamittaukset[ , col] <- NULL
   }
+}
+rm(col)
 
 # Suodatetaan pois tyhjät rivit
 kenttamittaukset <- kenttamittaukset[!is.na(asema_nimi), ]
