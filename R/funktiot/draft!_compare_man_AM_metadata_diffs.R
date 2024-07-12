@@ -5,6 +5,8 @@
 # beforehand.
 # Could be developed into a self-contained function.
 
+if (FALSE) {
+  
 koord_vrt <- apply(link_am_man, 1, function(x) {
   
   man <- kaikki_paikat[kaikki_paikat$paikka_id %in% x[[2]], c("lon", "lat")]
@@ -22,3 +24,5 @@ koord_vrt <- apply(link_am_man, 1, function(x) {
   }
 }
 )
+
+}
