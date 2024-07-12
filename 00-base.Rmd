@@ -1362,16 +1362,49 @@ putki_yhd_temp <- putki_yhd_temp[!putki_yhd_temp$PaikkaTyyppi_Id %in%
                    c("Maankosteusmittari"), ]
 
 
-# TODO Ensure that pairs of manual and autom. pipes have the same elev values
-link_am_man <- hae_PaikkaAutomaattiManuaali()
-vertaa_am_man <- data.frame(matrix(nrow=nrow(link_am_man), ncol=10))#Table of discrepancies
 
+### Ensure that pairs of manual and autom. pipes have the same elev values
+link_am_man <- hae_PaikkaAutomaattiManuaali() # Fetch link table
+
+putki_yhd_temp_backup #  <- putki_yhd_temp
+# Pre-emptively set some known exceptions
+# (Hardcoded fixes)
+hard_fixes <- tibble::tribble(
+  ~val_from, ~val_to,
+  60853, 47909, # 0302p5bAM->p5b
+  39419, 75430, # (0305)HP3->0305HP3AM
+  39422, 75431, # (0305)HP6->0305HP6AM
+  39424, 75432, # (0305)HP11->0305HP11AM
+  39425, 75440, # (0305)HP12->0305HP12AM
+  39423, 75441, # (0305)HP9->0305HP9AM
+  39758, 75442, # (0305)HP10->0305HP10AM
+  39413, 82160, # (0305)HP1->0305HP1AM
+  39414, 82161, # (0305)HP2->0305HP2AM
+  39420, 82162, # (0305)HP4->0305HP4AM
+  39421, 82163, # (0305)HP5->0305HP5AM
+  42041, 85987, # 0801p1b->0801p1bAM
+  86023, 9944   # 1209limAM->1209p10(limni)
+) |> as.data.frame()
+
+for (i in 1:nrow(hard_fixes)) { # Apply the hardcode fixes table
+  putki_yhd_temp[putki_yhd_temp$paikka_id == hard_fixes[i,"val_to"], c("yla","maa")] <-
+    putki_yhd_temp[putki_yhd_temp$paikka_id == hard_fixes[i,"val_from"], c("yla","maa")]
+  # Unused method (the flexibility is not needed in this case)
+  # test <- replace_w_key(test,"paikka_id",
+  #                       toK=hard_fixes[i,"val_to"],vars=c("yla","maa"),fromK=hard_fixes[i, "val_from"])
+}
+rm(hard_fixes)
+
+
+# Set the proritisation order of the available sources (used in the next loop)
 yla_src_prio <- c("Pietari","DB","ELY","DTM+ELY","DTM+DB","DTM+MISSING",
-                      "KM2+ELY","KM2+DB","KM2+MISSING")
+                  "KM2+ELY","KM2+DB","KM2+MISSING", NA)
+stopifnot(length(unique(putki_yhd_temp$yla_source)) == length(yla_src_prio))
 maa_src_prio <- c("Pietari-Pietari","DB-Pietari","DB-ELY","DB","DB-MISSING",
-                      "ELY","DTM","KM2")
-diff_lim <- 1
-
+                  "ELY","DTM","KM2")
+stopifnot(length(unique(putki_yhd_temp$maa_source)) == length(maa_src_prio))
+# Set limit of 1m as the max change between man and AM
+diff_lim <- 1 # (stops if exceeded, manual investigations possibly needed)
 
 for (i in 1:nrow(link_am_man)) {
   # Get ids from link table
@@ -1381,16 +1414,15 @@ for (i in 1:nrow(link_am_man)) {
   p_a <- putki_yhd_temp[putki_yhd_temp$paikka_id == a_id, ]
   p_m <- putki_yhd_temp[putki_yhd_temp$paikka_id == m_id, ]
   
+  suppressWarnings(rm(new_maa, new_yla)) # Ensure fresh vars
+  
   # If both am & man have been dropped previously, equality is not checked
-  tryCatch(
-    {
-      
   if (nrow(p_a) == 0 && nrow(p_m) == 0) {
-    vertaa_am_man[i, ] <- NA
+    next
   # If top elevs already equal, ensure that ground elevs are equal too
   } else if (isTRUE(all.equal(p_a$yla, p_m$yla))) {
     if (isTRUE(all.equal(p_a$maa, p_m$maa))) {
-        vertaa_am_man[i, ] <- NA
+      next # If both top and ground elevs are equal among man and AM, next 
     } else {
       # Compare ground elevation sources
       for (src in maa_src_prio) {
@@ -1416,29 +1448,24 @@ for (i in 1:nrow(link_am_man)) {
           break # Stop looking for further prioritised sources once 1 is found
         }
     }
-  }
-  
+    # Check also ground elevs
+    if (isTRUE(all.equal(p_a$maa, p_m$maa))) {
+      next
+    } else {
+      for (src in maa_src_prio) { # Compare ground elev sources
+        if ((p_a$maa_source == src) || (p_m$maa_source == src)) {#Compare on 1st matched source
+          new_maa <- eq_tester(p_a, p_m, "maa_source",should_eq=src, out_var="maa")
+          if (abs(p_a$maa-new_maa) > diff_lim || abs(p_m$maa-new_maa) > diff_lim) stop()
+          putki_yhd_temp[putki_yhd_temp$paikka_id == a_id, "maa"] <- new_maa
+          putki_yhd_temp[putki_yhd_temp$paikka_id == m_id, "maa"] <- new_maa
+          break # Stop looking for further prioritised sources once 1 is found
+        }
+      }
     }
-  ,finally= {
-    vertaa_am_man[i, ] <- c(p_a$tunnus, p_m$tunnus,
-                            p_a$yla,p_a$yla_source, p_m$yla,p_m$yla_source, new_yla
-                            p_a$maa,p_a$maa_source, p_m$maa,p_m$maa_source, new_maa)
   }
-    )
   
 }
-
-
-
-
-colnames(vertaa_am_man) <- c("tunnus_AM","tunnus_man",
-                             "AM_yla","AM_y_source","man_yla","man_y_source","new_yla"
-                             "AM_maa","AM_m_source","man_maa","man_m_source","new_maa")
-vertaa_am_man <- vertaa_am_man[!is.na(vertaa_am_man$tunnus_AM), ] #drop NA rows
-rm(a_id,m_id,p_a,p_m, new_maa,new_yla, yla_src_prio,maa_src_prio, src)
-
-
-# Drop rows where man and autom. have matching elevs (0 diff)
+rm(a_id,m_id,p_a,p_m, new_maa,new_yla, yla_src_prio,maa_src_prio, src, diff_lim)
 
 
 # Drop suspected bad ELY measurements (later possibly replaced with DTM and KM2 values)
