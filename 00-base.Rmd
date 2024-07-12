@@ -1662,8 +1662,11 @@ mean(replace(putki_yhd_temp$yla-putki_yhd_temp$yla_db,
 
 
 
-```{r session-info}
+```{r session-info, results='hide'}
+ops <- options()
+options(width=80) # Ensure that the printout formatting remains constant
 writeLines(capture.output(sessionInfo()), f.path("doc","R_session_info.txt"))
+options(ops); rm(ops)
 ```
 
 
