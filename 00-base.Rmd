@@ -1366,9 +1366,9 @@ putki_yhd_temp <- putki_yhd_temp[!putki_yhd_temp$PaikkaTyyppi_Id %in%
 link_am_man <- hae_PaikkaAutomaattiManuaali()
 vertaa_am_man <- data.frame(matrix(nrow=nrow(link_am_man), ncol=10))#Table of discrepancies
 
-yla_src_priority <- c("Pietari","DB","ELY","DTM+ELY","DTM+DB","DTM+MISSING",
+yla_src_prio <- c("Pietari","DB","ELY","DTM+ELY","DTM+DB","DTM+MISSING",
                       "KM2+ELY","KM2+DB","KM2+MISSING")
-maa_src_priority <- c("Pietari-Pietari","DB-Pietari","DB-ELY","DB","DB-MISSING",
+maa_src_prio <- c("Pietari-Pietari","DB-Pietari","DB-ELY","DB","DB-MISSING",
                       "ELY","DTM","KM2")
 diff_lim <- 1
 
@@ -1393,7 +1393,7 @@ for (i in 1:nrow(link_am_man)) {
         vertaa_am_man[i, ] <- NA
     } else {
       # Compare ground elevation sources
-      for (src in maa_src_priority) {
+      for (src in maa_src_prio) {
         # Start comparison once the first prioritised source is matched
         if ((p_a$maa_source == src) || (p_m$maa_source == src)) {
           new_maa <- eq_tester(p_a, p_m, "maa_source",should_eq=src, out_var="maa")
@@ -1405,7 +1405,8 @@ for (i in 1:nrow(link_am_man)) {
       }
     }
   } else {
-    for (src in yla_src_priority) {
+    # If top elevs are not equal, perform checks in the order of prioritised sources
+    for (src in yla_src_prio) {
         # Start comparison once the first prioritised source is matched
         if ((p_a$yla_source == src) || (p_m$yla_source == src)) {
           new_yla <- eq_tester(p_a, p_m, "yla_source",should_eq=src, out_var="yla")
@@ -1434,7 +1435,7 @@ colnames(vertaa_am_man) <- c("tunnus_AM","tunnus_man",
                              "AM_yla","AM_y_source","man_yla","man_y_source","new_yla"
                              "AM_maa","AM_m_source","man_maa","man_m_source","new_maa")
 vertaa_am_man <- vertaa_am_man[!is.na(vertaa_am_man$tunnus_AM), ] #drop NA rows
-rm(a_id,m_id, p_a,p_m, new_maa,new_yla, )
+rm(a_id,m_id,p_a,p_m, new_maa,new_yla, yla_src_prio,maa_src_prio, src)
 
 
 # Drop rows where man and autom. have matching elevs (0 diff)
