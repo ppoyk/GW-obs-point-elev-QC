@@ -22,6 +22,9 @@ for (col in names(kenttamittaukset)) {
 }
 rm(col)
 
+# Do not import the col with bad values (related to some comments within the file)
+kenttamittaukset[["BAD"]] <- NULL
+
 # Suodatetaan pois tyhjät rivit
 kenttamittaukset <- kenttamittaukset[!is.na(asema_nimi), ]
 
