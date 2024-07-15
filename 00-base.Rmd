@@ -648,7 +648,7 @@ if (USERCONF$ajo_las_alustalla == T) {
 }
 ```
 
-```{r LAS-aineisto-korkeusmalleiksi-ja-korkeuden-lukeminen}
+```{r LAS-aineisto-korkeusmalleiksi-ja-korkeuden-lukeminen, message=FALSE}
 # Muodostetaan katalogista DTM
 
 if (USERCONF$ajo_las_alustalla == T) {
@@ -685,7 +685,7 @@ kaikki_paikat <- merge(kaikki_paikat, dtm_elev, by = "paikka_id")
 
 
 
-```{r KM2-lataaminen-ja-lukeminen, message=FALSE, include=FALSE}
+```{r KM2-lataaminen-ja-lukeminen, echo=TRUE, message=FALSE}
 
 # Code below downloads KM2 elevation model data from station and observation
 # location coordinates.
@@ -1363,7 +1363,7 @@ putki_yhd_temp <- putki_yhd_temp[!putki_yhd_temp$PaikkaTyyppi_Id %in%
 
 
 
-### Ensure that pairs of manual and autom. pipes have the same elev values
+#### Ensure that pairs of manual and autom. pipes have the same elev values
 link_am_man <- hae_PaikkaAutomaattiManuaali() # Fetch link table
 
 putki_yhd_temp_backup #  <- putki_yhd_temp
@@ -1387,8 +1387,10 @@ hard_fixes <- tibble::tribble(
 ) |> as.data.frame()
 
 for (i in 1:nrow(hard_fixes)) { # Apply the hardcode fixes table
-  putki_yhd_temp[putki_yhd_temp$paikka_id == hard_fixes[i,"val_to"], c("yla","maa")] <-
-    putki_yhd_temp[putki_yhd_temp$paikka_id == hard_fixes[i,"val_from"], c("yla","maa")]
+  putki_yhd_temp[putki_yhd_temp$paikka_id == hard_fixes[i,"val_to"],
+                 c("yla","yla_source","yla_verif","maa","maa_source","maa_verif")] <-
+    putki_yhd_temp[putki_yhd_temp$paikka_id == hard_fixes[i,"val_from"],
+                   c("yla","yla_source","yla_verif","maa","maa_source","maa_verif")]
   # Unused method (the flexibility is not needed in this case)
   # test <- replace_w_key(test,"paikka_id",
   #                       toK=hard_fixes[i,"val_to"],vars=c("yla","maa"),fromK=hard_fixes[i, "val_from"])
