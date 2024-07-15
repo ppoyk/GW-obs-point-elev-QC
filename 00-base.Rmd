@@ -1665,10 +1665,23 @@ mean(replace(putki_yhd_temp$yla-putki_yhd_temp$yla_db,
 
 
 ```{r session-info, results='hide'}
+
+sessinfo_path <- f.path("doc","R_session_info.txt") #Define session info outfile
+
 ops <- options()
-options(width=80) # Ensure that the printout formatting remains constant
-writeLines(capture.output(sessionInfo()), f.path("doc","R_session_info.txt"))
-options(ops); rm(ops)
+options(width=80L) # Ensure that the printout formatting remains constant
+
+sessioninfo::session_info(to_file=sessinfo_path) # Output the session info
+# Take the resulting file and omit the library path
+modif_info <- readLines(sessinfo_path) |> gsub(".*C:/Users/.*", "", x=_)
+cat(modif_info, file=sessinfo_path, sep="\n"); rm(modif_info) #Write the modified file
+
+# Append also base::sessionInfo()
+cat("\n+++ RESULTS OF base::sessionInfo:", capture.output(sessionInfo()),"",
+    file=sessinfo_path, sep="\n", append=T) #("fill=N" is inadequate for formatting a list)
+
+options(ops); rm(ops) # Restore options
+
 ```
 
 
