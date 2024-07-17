@@ -40,3 +40,9 @@ USERCONF <- list(
     experimental = F # CAUTION! Toggle experiments. This is not core functionality.
   )
 )
+
+# If no internet, stop if KM2 data is forced to be downloaded
+if (!curl::has_internet()) {
+  stopifnot(!USERCONF$pakota_lataus_KM2)
+}
+
