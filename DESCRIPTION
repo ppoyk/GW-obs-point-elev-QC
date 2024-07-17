@@ -9,7 +9,7 @@ Authors@R: c(
         comment = c(ORCID = "0009-0000-1214-5336")),
     person(
         "Suomen ympäristökeskus, Finnish Environment Institute", "Syke",
-        role = c("fnd", "cph)))
+        role = c("fnd", "cph")))
 Description: Scientific analysis script formatted in a package-like structure. This code is a part of the quality control work done to the metadata of physical structures in the hydrological groundwater monitoring network of Syke. It utilises precise field measurements of the structures, as well as national elevation data to verify the current coordinate and elevation values of the structures in the database. The elevation source confidence intervals are also evaluated based on said measurements.
 URL: https://github.com/ppoyk/GW-obs-point-elev-QC
 BugReports: https://github.com/ppoyk/GW-obs-point-elev-QC/issues
@@ -40,7 +40,7 @@ Imports:
     data.table (>= 1.14.0),
     yaml (>= 2.3.0),
     rnaturalearth (>= 0.3.4),
-    rnaturalearthdata (>= 0.1.0)
+    rnaturalearthdata (>= 0.1.0),
     rnaturalearthhires (>= 0.2.0),
     rlang (>= 1.1.0),
 Encoding: UTF-8
