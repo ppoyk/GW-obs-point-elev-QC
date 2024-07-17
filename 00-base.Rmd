@@ -24,8 +24,7 @@ source("USERCONF.R")
 
 # Juurikansion määrittäminen muuttujaan
 if (!requireNamespace("here", quietly = TRUE)) {
-  warning("Package \"here\" must be installed to execute.", call. = FALSE)
-  install.packages("here", destdir = "libs", lib = "libs")
+  stop("Package \"here\" must be installed to execute.", call. = FALSE)
 }
 here::i_am("00-base.Rmd")
 root <- here::here()
