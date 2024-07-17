@@ -32,7 +32,7 @@ ref_kp <- do.call(rbind, ref_kp) # Transform from list into df
 
 
 # Select control points from a database table where own measurements were taken
-db_kp <- kp[kp$kiintopistetunnus %in% ref_kp$kiintopistetunnus, ]
+db_kp <- kp1lk[kp1lk$kiintopistetunnus %in% ref_kp$kiintopistetunnus, ]
 # INSERT TRANSFORMED N2000 ELEVATION VALUES
 # (https://kartta.paikkatietoikkuna.fi/ coord. transformation tool) (values from
 # cols EUREF_FIN_GRS80_lon/_lat/h)(65.224356231,25.367352328,37.142 -> 19.4077)
