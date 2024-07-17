@@ -6,6 +6,9 @@
 *.html
 *.pdf
 
+# Cached script results
+/R/cache/
+
 # History files
 .Rhistory
 .Rapp.history

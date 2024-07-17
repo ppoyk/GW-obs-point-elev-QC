@@ -32,7 +32,7 @@ root <- here::here()
 
 # Listaa tarvittavat paketit
 pkgs <- c("rmarkdown","ggplot2","ggstatsplot","ggrepel","ggridges",
-          "lidR","rlas","gstat","sf","terra","dplyr","stringr",
+          "lidR","rlas","gstat","sf","terra","dplyr","stringr","memoise",
           "data.table","yaml","rnaturalearth","rnaturalearthdata","rlang",
           "DescTools","vctrs","scales","knitr","remotes","DBI","tidyr",
           "future.apply","odbc","httr2","jsonlite","broom","this.path")
@@ -68,7 +68,8 @@ D <- list(
   tulokset = file.path(root, "output"),
   doc      = file.path(root, "doc"),
   # Usein käytetyt alakansiot
-  secrets  = file.path(root, "aineisto", "secrets")
+  secrets  = file.path(root, "aineisto", "secrets"),
+  c        = file.path(root, "R","cache")
 )
 
 # Muut tärkeä muuttujat:
