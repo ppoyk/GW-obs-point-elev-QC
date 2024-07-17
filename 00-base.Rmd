@@ -31,9 +31,9 @@ root <- here::here()
 
 
 # Listaa tarvittavat paketit
-pkgs <- c("rmarkdown","ggplot2","ggstatsplot","ggrepel","ggridges",
-          "lidR","rlas","gstat","sf","terra","dplyr","stringr","memoise",
-          "data.table","yaml","rnaturalearth","rnaturalearthdata","rlang",
+pkgs <- c("rmarkdown","ggplot2","ggstatsplot","ggrepel","ggridges","lidR",
+          "rlas","gstat","sf","terra","dplyr","stringr","memoise","data.table",
+          "yaml","rnaturalearth","rnaturalearthdata","rlang","fitdistrplus",
           "DescTools","vctrs","scales","knitr","remotes","DBI","tidyr",
           "future.apply","odbc","httr2","jsonlite","broom","this.path")
 
