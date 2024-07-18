@@ -566,7 +566,7 @@ names(model_comparison) <- nms
 # Set pretty names for models
 for (n in unique(model_comparison[,1])) {
   model_comparison <-
-    replace(model_comparison, model_comparison==n, labs[[n]])
+    replace(model_comparison, model_comparison == n, labs[[n]])
 }
 # Save results to csv
 data.table::fwrite(model_comparison,

@@ -228,7 +228,7 @@ rm(as_kartta) # Cleanup
 
 ```{r ref-mittausten-tarkkuuden-arviointi}
 # Load national reference points (if not yet loaded)
-if (!exists("kp", inherits = F)) source(file.path(D$koodi,"tuo_kiintopisteet.R"))
+source(file.path(D$koodi,"tuo_kiintopisteet.R"))
 
 # Import raw measured point data
 ref_raw <- readxl::read_excel(
@@ -1680,6 +1680,7 @@ cat("\n+++ RESULTS OF base::sessionInfo:", capture.output(sessionInfo()),"",
     file=sessinfo_path, sep="\n", append=T) #("fill=N" is inadequate for formatting a list)
 
 options(ops); rm(ops) # Restore options
+rm(sessinfo_path)
 
 ```
 
