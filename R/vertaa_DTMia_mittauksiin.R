@@ -249,6 +249,7 @@ message("DTMs created for reference points for DTM performance evaluation")
 #                         folder=ref_dtm_dir, clean = USERCONF$luo_kaikki_5p_dtm,
 #                         reso = USERCONF$DEV$dtm_luonti_solukoko,
 #                         elev_only = !USERCONF$ajo_las_alustalla)
+rm(ref_ktlg)
 } # End section performed only on LAS platform
 
 # Read elevations of the created DTMs (parallel)
@@ -461,7 +462,7 @@ okpoints_densplot <- ggplot(
                       alpha = 0.5) +
   geom_vline(xintercept = 0, linewidth = 1.1) +
   labs(x = "DTM error to reference points [m]", y = "Elevation model") +
-  scale_y_discrete(expand=expand_scale(mult = c(0.05,0.2)), labels=labs) +
+  scale_y_discrete(expand=expansion(mult = c(0.05,0.2)), labels=labs) +
   theme_ridges() +
   theme(legend.position="none", plot.background=element_rect(fill="white"))
 
@@ -583,5 +584,5 @@ krig50shift <- DescTools::Quantile(ok_refpoints$krig50_error, probs=.5,
 # KM2 not shifted, as the error has larger values and larger SD (too wide distribution)
 
 
-rm(ref_ktlg, labs)
+rm(labs)
 #rm(plotdata)

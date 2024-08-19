@@ -8,7 +8,7 @@ read_KM2_elev <- function(folder, ids, lon, lat) {
   coords <- data.frame(id = ids, lon = lon, lat = lat)
 
   # Init results var
-  results <- data.frame(id = ids, elev = rep(NA, length = length(ids)))
+  results <- data.frame(id = ids, elev = rep(NA, length.out = length(ids)))
 
   # Loop through provided ids, try to find matching file
   for (id in ids) {

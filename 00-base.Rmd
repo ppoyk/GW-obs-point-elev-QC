@@ -1548,7 +1548,7 @@ putki_korkeudet_outfile <-
 #Round numeric cols to two decimal digits
 putki_korkeudet_outfile <-
   dplyr::mutate_if(putki_korkeudet_outfile, is.numeric, ~round(., 2)) |>
-  dplyr::mutate(PaikkaTyyppi_Id=as.num(PaikkaTyyppi_Id))
+  dplyr::mutate(PaikkaTyyppi_Id = as.numeric(PaikkaTyyppi_Id))
 
 # Write the results to a file
 data.table::fwrite(putki_korkeudet_outfile,
