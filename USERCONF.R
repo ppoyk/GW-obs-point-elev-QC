@@ -42,7 +42,7 @@ USERCONF <- list(
 )
 
 # If no internet, stop if KM2 data is forced to be downloaded
-if (!curl::has_internet()) {
-  stopifnot(!USERCONF$pakota_lataus_KM2)
+if (!curl::has_internet() && isTRUE(USERCONF$pakota_lataus_KM2)) {
+  stop("KM2 download forced in USERCONF, but no internet access")
 }
 
