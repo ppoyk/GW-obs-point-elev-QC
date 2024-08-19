@@ -633,7 +633,7 @@ if (USERCONF$DEV$experimental == T) {
 ```
 
 ```{r LAS-katalogien-tarkistus}
-if (USERCONF$ajo_las_alustalla == T) {
+if (isTRUE(USERCONF$ajo_las_alustalla)) {
   # Tarkistetaan katalogin eheys
   lidR::las_check(ktlg)
   # Tarkistetaan miltä katalogi näyttää
@@ -650,7 +650,7 @@ if (USERCONF$ajo_las_alustalla == T) {
 ```{r LAS-aineisto-korkeusmalleiksi-ja-korkeuden-lukeminen, message=FALSE}
 # Muodostetaan katalogista DTM
 
-if (USERCONF$ajo_las_alustalla == T) {
+if (isTRUE(USERCONF$ajo_las_alustalla)) {
   # Create DTMs (type selection based on results of vertaa_DTMia_mittauksiin.R)
   fut_create_DTMs(ktlg,
                   kaikki_paikat$lon, kaikki_paikat$lat,
@@ -1520,7 +1520,6 @@ putki_yhd_trim <- putki_yhd_trim[
 
 ```{r save-elevation-table}
 
-
 test <-
   putki_yhd_trim[,c("paikka_id","asema_tunnus","asema_nimi","tunnus","PaikkaTyyppi_Id",
                     "yla_db","putki","maa_verif","yla_verif")]
@@ -1553,7 +1552,7 @@ putki_korkeudet_outfile <-
 # Write the results to a file
 data.table::fwrite(putki_korkeudet_outfile,
   check_dir(D$tulokset,"korkeudet","korkeudet_tietokantaan_DRAFT.csv", ensure = T),
-  bom = T)
+  dec = ".", sep = ";", bom = T, )
 
 ```
 
@@ -1683,5 +1682,4 @@ options(ops); rm(ops) # Restore options
 rm(sessinfo_path)
 
 ```
-
 

@@ -1,257 +1,241 @@
 ─ Session info ───────────────────────────────────────────────────────────────
  setting  value
- version  R version 4.2.2 (2022-10-31 ucrt)
- os       Windows 10 x64 (build 22621)
+ version  R version 4.4.1 (2024-06-14 ucrt)
+ os       Windows 11 x64 (build 22621)
  system   x86_64, mingw32
  ui       RStudio
  language (EN)
  collate  Finnish_Finland.utf8
  ctype    Finnish_Finland.utf8
  tz       Europe/Helsinki
- date     2024-07-15
- rstudio  2023.06.0+421 Mountain Hydrangea (desktop)
- pandoc   3.1.1 @ D:/Program Files/RStudio/resources/app/bin/quarto/bin/tools/ (via rmarkdown)
+ date     2024-07-31
+ rstudio  2024.04.2+764 Chocolate Cosmos (desktop)
+ pandoc   3.1.11 @ D:/ProgramFiles/RStudio/resources/app/bin/quarto/bin/tools/ (via rmarkdown)
 
 ─ Packages ───────────────────────────────────────────────────────────────────
- package            * version    date (UTC) lib source
- assertthat           0.2.1      2019-03-21 [1] CRAN (R 4.2.3)
- backports            1.4.1      2021-12-13 [1] CRAN (R 4.2.0)
- bayestestR           0.13.2     2024-02-12 [1] CRAN (R 4.2.3)
- bit                  4.0.5      2022-11-15 [1] CRAN (R 4.2.3)
- bit64                4.0.5      2020-08-30 [1] CRAN (R 4.2.3)
- blob                 1.2.4      2023-03-17 [1] CRAN (R 4.2.3)
- boot                 1.3-28     2021-05-03 [1] CRAN (R 4.2.2)
- broom                1.0.5      2023-06-09 [1] CRAN (R 4.2.3)
- caret                6.0-94     2023-03-21 [1] CRAN (R 4.2.3)
- cellranger           1.1.0      2016-07-27 [1] CRAN (R 4.2.3)
- class                7.3-20     2022-01-16 [1] CRAN (R 4.2.2)
- classInt             0.4-10     2023-09-05 [1] CRAN (R 4.2.3)
- cli                  3.6.2      2023-12-11 [1] CRAN (R 4.2.3)
- codetools            0.2-18     2020-11-04 [1] CRAN (R 4.2.2)
- collapse             2.0.12     2024-04-01 [1] CRAN (R 4.2.3)
- colorspace           2.1-0      2023-01-23 [1] CRAN (R 4.2.3)
- commonmark           1.9.0      2023-03-17 [1] CRAN (R 4.2.3)
- correlation          0.8.4      2023-04-06 [1] CRAN (R 4.2.3)
- crayon               1.5.2      2022-09-29 [1] CRAN (R 4.2.3)
- curl                 5.2.1      2024-03-01 [1] CRAN (R 4.2.3)
- data.table           1.15.4     2024-03-30 [1] CRAN (R 4.2.3)
- datawizard           0.10.0     2024-03-26 [1] CRAN (R 4.2.3)
- DBI                  1.2.3      2024-06-02 [1] CRAN (R 4.2.2)
- DescTools          * 0.99.50    2023-09-06 [1] CRAN (R 4.2.3)
- digest               0.6.35     2024-03-11 [1] CRAN (R 4.2.3)
- dplyr                1.1.4      2023-11-17 [1] CRAN (R 4.2.3)
- e1071                1.7-14     2023-12-06 [1] CRAN (R 4.2.3)
- effectsize           0.8.7      2024-04-01 [1] CRAN (R 4.2.3)
- evaluate             0.24.0     2024-06-10 [1] CRAN (R 4.2.2)
- Exact                3.2        2022-09-25 [1] CRAN (R 4.2.3)
- expm                 0.999-7    2023-01-09 [1] CRAN (R 4.2.3)
- fansi                1.0.6      2023-12-08 [1] CRAN (R 4.2.3)
- farver               2.1.2      2024-05-13 [1] CRAN (R 4.2.2)
- fastmap              1.1.1      2023-02-24 [1] CRAN (R 4.2.3)
- fitdistrplus         1.1-11     2023-04-25 [1] CRAN (R 4.2.3)
- FNN                  1.1.4      2024-01-12 [1] CRAN (R 4.2.3)
- foreach              1.5.2      2022-02-02 [1] CRAN (R 4.2.3)
- future             * 1.33.0     2023-07-01 [1] CRAN (R 4.2.3)
- future.apply         1.11.0     2023-05-21 [1] CRAN (R 4.2.3)
- generics             0.1.3      2022-07-05 [1] CRAN (R 4.2.3)
- ggplot2            * 3.5.1      2024-04-23 [1] CRAN (R 4.2.3)
- ggrepel              0.9.5      2024-01-10 [1] CRAN (R 4.2.3)
- ggridges           * 0.5.6      2024-01-23 [1] CRAN (R 4.2.3)
- ggstatsplot          0.12.3     2024-04-06 [1] CRAN (R 4.2.3)
- gld                  2.6.6      2022-10-23 [1] CRAN (R 4.2.3)
- globals              0.16.2     2022-11-21 [1] CRAN (R 4.2.2)
- glue                 1.7.0      2024-01-09 [1] CRAN (R 4.2.3)
- gower                1.0.1      2022-12-22 [1] CRAN (R 4.2.2)
- gstat                2.1-1      2023-04-06 [1] CRAN (R 4.2.3)
- gtable               0.3.5      2024-04-22 [1] CRAN (R 4.2.3)
- hardhat              1.3.0      2023-03-30 [1] CRAN (R 4.2.3)
- here                 1.0.1      2020-12-13 [1] CRAN (R 4.2.3)
- hms                  1.1.3      2023-03-21 [1] CRAN (R 4.2.3)
- htmltools            0.5.8.1    2024-04-04 [1] CRAN (R 4.2.3)
- htmlwidgets          1.6.2      2023-03-17 [1] CRAN (R 4.2.3)
- httr                 1.4.7      2023-08-15 [1] CRAN (R 4.2.3)
- httr2                0.2.3      2023-05-08 [1] CRAN (R 4.2.3)
- insight              0.19.10    2024-03-22 [1] CRAN (R 4.2.3)
- intervals            0.15.4     2023-06-29 [1] CRAN (R 4.2.3)
- ipred                0.9-14     2023-03-09 [1] CRAN (R 4.2.3)
- iterators            1.0.14     2022-02-05 [1] CRAN (R 4.2.3)
- jsonlite             1.8.8      2023-12-04 [1] CRAN (R 4.2.3)
- KernSmooth           2.23-20    2021-05-03 [1] CRAN (R 4.2.2)
- knitr                1.47       2024-05-29 [1] CRAN (R 4.2.2)
- labeling             0.4.3      2023-08-29 [1] CRAN (R 4.2.3)
- lattice              0.20-45    2021-09-22 [1] CRAN (R 4.2.2)
- lava                 1.7.3      2023-11-04 [1] CRAN (R 4.2.3)
- lidR                 4.1.1      2024-03-05 [1] CRAN (R 4.2.3)
- lifecycle            1.0.4      2023-11-07 [1] CRAN (R 4.2.3)
- listenv              0.9.0      2022-12-16 [1] CRAN (R 4.2.3)
- lmom                 3.0        2023-08-29 [1] CRAN (R 4.2.3)
- lubridate            1.9.3      2023-09-27 [1] CRAN (R 4.2.3)
- magrittr             2.0.3      2022-03-30 [1] CRAN (R 4.2.3)
- MASS                 7.3-58.1   2022-08-03 [1] CRAN (R 4.2.2)
- Matrix               1.5-1      2022-09-13 [1] CRAN (R 4.2.2)
- mgcv                 1.8-41     2022-10-21 [1] CRAN (R 4.2.2)
- ModelMetrics         1.2.2.2    2020-03-17 [1] CRAN (R 4.2.3)
- munsell              0.5.1      2024-04-01 [1] CRAN (R 4.2.3)
- mvtnorm              1.2-3      2023-08-25 [1] CRAN (R 4.2.3)
- nlme                 3.1-160    2022-10-10 [1] CRAN (R 4.2.2)
- nnet                 7.3-18     2022-09-28 [1] CRAN (R 4.2.2)
- odbc                 1.5.0      2024-06-05 [1] CRAN (R 4.2.2)
- paletteer            1.6.0      2024-01-21 [1] CRAN (R 4.2.3)
- parallelly           1.36.0     2023-05-26 [1] CRAN (R 4.2.3)
- parameters           0.21.6     2024-03-18 [1] CRAN (R 4.2.3)
- patchwork            1.2.0      2024-01-08 [1] CRAN (R 4.2.3)
- pillar               1.9.0      2023-03-22 [1] CRAN (R 4.2.3)
- pkgconfig            2.0.3      2019-09-22 [1] CRAN (R 4.2.3)
- plyr                 1.8.9      2023-10-02 [1] CRAN (R 4.2.3)
- prettyunits          1.1.1      2020-01-24 [1] CRAN (R 4.2.3)
- pROC                 1.18.5     2023-11-01 [1] CRAN (R 4.2.3)
- prodlim              2023.08.28 2023-08-28 [1] CRAN (R 4.2.3)
- profvis              0.3.8      2023-05-02 [1] CRAN (R 4.2.3)
- progress             1.2.2      2019-05-16 [1] CRAN (R 4.2.3)
- proxy                0.4-27     2022-06-09 [1] CRAN (R 4.2.3)
- purrr                1.0.2      2023-08-10 [1] CRAN (R 4.2.3)
- R6                   2.5.1      2021-08-19 [1] CRAN (R 4.2.3)
- ragg                 1.3.0      2024-03-13 [1] CRAN (R 4.2.3)
- rappdirs             0.3.3      2021-01-31 [1] CRAN (R 4.2.3)
- Rcpp                 1.0.12     2024-01-09 [1] CRAN (R 4.2.3)
- readxl               1.4.3      2023-07-06 [1] CRAN (R 4.2.3)
- recipes              1.0.9      2023-12-13 [1] CRAN (R 4.2.3)
- rematch2             2.1.2      2020-05-01 [1] CRAN (R 4.2.3)
- remotes              2.5.0      2024-03-17 [1] CRAN (R 4.2.3)
- reshape2             1.4.4      2020-04-09 [1] CRAN (R 4.2.3)
- rlang                1.1.3      2024-01-10 [1] CRAN (R 4.2.3)
- rlas                 1.7.0      2023-12-11 [1] CRAN (R 4.2.3)
- rmarkdown            2.27       2024-05-17 [1] CRAN (R 4.2.2)
- rnaturalearth        1.0.1      2023-12-15 [1] CRAN (R 4.2.3)
- rnaturalearthdata    1.0.0      2024-02-09 [1] CRAN (R 4.2.3)
- rnaturalearthhires   1.0.0.9000 2024-04-12 [1] Github (ropensci/rnaturalearthhires@dd1e210)
- rootSolve            1.8.2.4    2023-09-21 [1] CRAN (R 4.2.3)
- rpart                4.1.19     2022-10-21 [1] CRAN (R 4.2.2)
- rprojroot            2.0.4      2023-11-05 [1] CRAN (R 4.2.3)
- rstudioapi           0.15.0     2023-07-07 [1] CRAN (R 4.2.3)
- scales               1.3.0      2023-11-28 [1] CRAN (R 4.2.3)
- sessioninfo          1.2.2      2021-12-06 [1] CRAN (R 4.2.3)
- sf                   1.0-16     2024-03-24 [1] CRAN (R 4.2.3)
- sp                   2.0-0      2023-06-22 [1] CRAN (R 4.2.3)
- spacetime            1.3-1      2023-12-05 [1] CRAN (R 4.2.3)
- statsExpressions     1.5.4      2024-03-20 [1] CRAN (R 4.2.3)
- stringi              1.8.3      2023-12-11 [1] CRAN (R 4.2.3)
- stringr              1.5.1      2023-11-14 [1] CRAN (R 4.2.3)
- survival             3.4-0      2022-08-09 [1] CRAN (R 4.2.2)
- systemfonts          1.0.6      2024-03-07 [1] CRAN (R 4.2.3)
- terra                1.7-78     2024-05-22 [1] CRAN (R 4.2.2)
- textshaping          0.3.7      2023-10-09 [1] CRAN (R 4.2.3)
- this.path            2.5.0      2024-06-29 [1] CRAN (R 4.2.2)
- tibble               3.2.1      2023-03-20 [1] CRAN (R 4.2.3)
- tidyr                1.3.0      2023-01-24 [1] CRAN (R 4.2.3)
- tidyselect           1.2.1      2024-03-11 [1] CRAN (R 4.2.3)
- timechange           0.2.0      2023-01-11 [1] CRAN (R 4.2.3)
- timeDate             4032.109   2023-12-14 [1] CRAN (R 4.2.3)
- units                0.8-5      2023-11-28 [1] CRAN (R 4.2.3)
- utf8                 1.2.4      2023-10-22 [1] CRAN (R 4.2.3)
- vctrs                0.6.5      2023-12-01 [1] CRAN (R 4.2.3)
- withr                3.0.0      2024-01-16 [1] CRAN (R 4.2.3)
- xfun                 0.44       2024-05-15 [1] CRAN (R 4.2.2)
- xml2                 1.3.5      2023-07-06 [1] CRAN (R 4.2.3)
- xts                  0.13.1     2023-04-16 [1] CRAN (R 4.2.3)
- yaml                 2.3.7      2023-01-23 [1] CRAN (R 4.2.3)
- zeallot              0.1.0      2018-01-28 [1] CRAN (R 4.2.3)
- zoo                  1.8-12     2023-04-13 [1] CRAN (R 4.2.3)
+ ! package            * version    date (UTC) lib source
+   backports            1.5.0      2024-05-23 [1] CRAN (R 4.4.0)
+   bayestestR           0.13.2     2024-02-12 [1] CRAN (R 4.4.1)
+   bit                  4.0.5      2022-11-15 [1] CRAN (R 4.4.1)
+   bit64                4.0.5      2020-08-30 [1] CRAN (R 4.4.1)
+   blob                 1.2.4      2023-03-17 [1] CRAN (R 4.4.1)
+   boot                 1.3-30     2024-02-26 [2] CRAN (R 4.4.1)
+   broom                1.0.6      2024-05-17 [1] CRAN (R 4.4.1)
+   cachem               1.1.0      2024-05-16 [1] CRAN (R 4.4.1)
+   cellranger           1.1.0      2016-07-27 [1] CRAN (R 4.4.1)
+   class                7.3-22     2023-05-03 [2] CRAN (R 4.4.1)
+   classInt             0.4-10     2023-09-05 [1] CRAN (R 4.4.1)
+   cli                  3.6.3      2024-06-21 [1] CRAN (R 4.4.1)
+   coda                 0.19-4.1   2024-01-31 [1] CRAN (R 4.4.1)
+   codetools            0.2-20     2024-03-31 [2] CRAN (R 4.4.1)
+   collapse             2.0.15     2024-07-08 [1] CRAN (R 4.4.1)
+   colorspace           2.1-0      2023-01-23 [1] CRAN (R 4.4.1)
+   correlation          0.8.5      2024-06-16 [1] CRAN (R 4.4.1)
+   crayon               1.5.3      2024-06-20 [1] CRAN (R 4.4.1)
+   curl                 5.2.1      2024-03-01 [1] CRAN (R 4.4.1)
+   data.table           1.15.4     2024-03-30 [1] CRAN (R 4.4.1)
+   datawizard           0.12.1     2024-07-15 [1] CRAN (R 4.4.1)
+   DBI                  1.2.3      2024-06-02 [1] CRAN (R 4.4.1)
+   DescTools          * 0.99.54    2024-02-03 [1] CRAN (R 4.4.1)
+   digest               0.6.36     2024-06-23 [1] CRAN (R 4.4.1)
+   dplyr                1.1.4      2023-11-17 [1] CRAN (R 4.4.1)
+   e1071                1.7-14     2023-12-06 [1] CRAN (R 4.4.1)
+   effectsize           0.8.9      2024-07-03 [1] CRAN (R 4.4.1)
+   emmeans              1.10.3     2024-07-01 [1] CRAN (R 4.4.1)
+   estimability         1.5.1      2024-05-12 [1] CRAN (R 4.4.1)
+   evaluate             0.24.0     2024-06-10 [1] CRAN (R 4.4.1)
+   Exact                3.2        2022-09-25 [1] CRAN (R 4.4.0)
+   expm                 0.999-9    2024-01-11 [1] CRAN (R 4.4.1)
+   fansi                1.0.6      2023-12-08 [1] CRAN (R 4.4.1)
+   farver               2.1.2      2024-05-13 [1] CRAN (R 4.4.1)
+   fastmap              1.2.0      2024-05-15 [1] CRAN (R 4.4.1)
+   fitdistrplus         1.2-1      2024-07-12 [1] CRAN (R 4.4.1)
+   FNN                  1.1.4      2024-01-12 [1] CRAN (R 4.4.1)
+   future             * 1.33.2     2024-03-26 [1] CRAN (R 4.4.1)
+   future.apply         1.11.2     2024-03-28 [1] CRAN (R 4.4.1)
+   generics             0.1.3      2022-07-05 [1] CRAN (R 4.4.1)
+   ggplot2            * 3.5.1      2024-04-23 [1] CRAN (R 4.4.1)
+   ggrepel              0.9.5      2024-01-10 [1] CRAN (R 4.4.1)
+   ggridges           * 0.5.6      2024-01-23 [1] CRAN (R 4.4.1)
+   ggstatsplot          0.12.4     2024-07-06 [1] CRAN (R 4.4.1)
+   gld                  2.6.6      2022-10-23 [1] CRAN (R 4.4.1)
+   globals              0.16.3     2024-03-08 [1] CRAN (R 4.4.0)
+   glue                 1.7.0      2024-01-09 [1] CRAN (R 4.4.1)
+   gstat                2.1-1      2023-04-06 [1] CRAN (R 4.4.1)
+   gtable               0.3.5      2024-04-22 [1] CRAN (R 4.4.1)
+   here                 1.0.1      2020-12-13 [1] CRAN (R 4.4.1)
+   hms                  1.1.3      2023-03-21 [1] CRAN (R 4.4.1)
+   htmltools            0.5.8.1    2024-04-04 [1] CRAN (R 4.4.1)
+   httr                 1.4.7      2023-08-15 [1] CRAN (R 4.4.1)
+   httr2                1.0.2      2024-07-16 [1] CRAN (R 4.4.1)
+   insight              0.20.2     2024-07-13 [1] CRAN (R 4.4.1)
+   intervals            0.15.4     2023-06-29 [1] CRAN (R 4.4.0)
+   jsonlite             1.8.8      2023-12-04 [1] CRAN (R 4.4.1)
+   KernSmooth           2.23-24    2024-05-17 [2] CRAN (R 4.4.1)
+   knitr                1.48.1     2024-07-19 [1] Github (yihui/knitr@fb1f423)
+   labeling             0.4.3      2023-08-29 [1] CRAN (R 4.4.0)
+   lattice              0.22-6     2024-03-20 [2] CRAN (R 4.4.1)
+   lidR                 4.1.2      2024-07-09 [1] CRAN (R 4.4.1)
+   lifecycle            1.0.4      2023-11-07 [1] CRAN (R 4.4.1)
+   listenv              0.9.1      2024-01-29 [1] CRAN (R 4.4.1)
+   lmom                 3.0        2023-08-29 [1] CRAN (R 4.4.0)
+   magrittr             2.0.3      2022-03-30 [1] CRAN (R 4.4.1)
+   MASS                 7.3-60.2   2024-04-26 [2] CRAN (R 4.4.1)
+   Matrix               1.7-0      2024-04-26 [2] CRAN (R 4.4.1)
+   memoise              2.0.1      2021-11-26 [1] CRAN (R 4.4.1)
+   mgcv                 1.9-1      2023-12-21 [2] CRAN (R 4.4.1)
+   multcomp             1.4-25     2023-06-20 [1] CRAN (R 4.4.1)
+   munsell              0.5.1      2024-04-01 [1] CRAN (R 4.4.1)
+   mvtnorm              1.2-5      2024-05-21 [1] CRAN (R 4.4.1)
+   nlme                 3.1-164    2023-11-27 [2] CRAN (R 4.4.1)
+   odbc                 1.5.0      2024-06-05 [1] CRAN (R 4.4.1)
+   paletteer            1.6.0      2024-01-21 [1] CRAN (R 4.4.1)
+   parallelly           1.37.1     2024-02-29 [1] CRAN (R 4.4.0)
+   parameters           0.22.0     2024-06-20 [1] CRAN (R 4.4.1)
+   patchwork            1.2.0      2024-01-08 [1] CRAN (R 4.4.1)
+   pillar               1.9.0      2023-03-22 [1] CRAN (R 4.4.1)
+   pkgconfig            2.0.3      2019-09-22 [1] CRAN (R 4.4.1)
+   proxy                0.4-27     2022-06-09 [1] CRAN (R 4.4.1)
+   purrr                1.0.2      2023-08-10 [1] CRAN (R 4.4.1)
+   R6                   2.5.1      2021-08-19 [1] CRAN (R 4.4.1)
+   ragg                 1.3.2      2024-05-15 [1] CRAN (R 4.4.1)
+   rappdirs             0.3.3      2021-01-31 [1] CRAN (R 4.4.1)
+   Rcpp                 1.0.12     2024-01-09 [1] CRAN (R 4.4.1)
+   readxl               1.4.3      2023-07-06 [1] CRAN (R 4.4.1)
+   rematch2             2.1.2      2020-05-01 [1] CRAN (R 4.4.1)
+   remotes              2.5.0      2024-03-17 [1] CRAN (R 4.4.1)
+   renv                 1.0.7      2024-04-11 [1] CRAN (R 4.4.1)
+   rlang                1.1.4      2024-06-04 [1] CRAN (R 4.4.1)
+   rlas                 1.8.0      2024-07-16 [1] CRAN (R 4.4.1)
+   rmarkdown            2.27       2024-05-17 [1] CRAN (R 4.4.1)
+   rnaturalearth        1.0.1      2023-12-15 [1] CRAN (R 4.4.1)
+   rnaturalearthdata    1.0.0      2024-02-09 [1] CRAN (R 4.4.1)
+   rnaturalearthhires   1.0.0.9000 2024-07-17 [1] Github (ropensci/rnaturalearthhires@dd1e210)
+   rootSolve            1.8.2.4    2023-09-21 [1] CRAN (R 4.4.0)
+   rprojroot            2.0.4      2023-11-05 [1] CRAN (R 4.4.1)
+   rstudioapi           0.16.0     2024-03-24 [1] CRAN (R 4.4.1)
+   sandwich             3.1-0      2023-12-11 [1] CRAN (R 4.4.1)
+   scales               1.3.0      2023-11-28 [1] CRAN (R 4.4.1)
+   sessioninfo          1.2.2      2021-12-06 [1] CRAN (R 4.4.1)
+   sf                   1.0-16     2024-03-24 [1] CRAN (R 4.4.1)
+   sp                   2.1-4      2024-04-30 [1] CRAN (R 4.4.1)
+   spacetime            1.3-1      2023-12-05 [1] CRAN (R 4.4.1)
+   statsExpressions     1.5.5      2024-07-05 [1] CRAN (R 4.4.1)
+   stringi              1.8.4      2024-05-06 [1] CRAN (R 4.4.0)
+   stringr              1.5.1      2023-11-14 [1] CRAN (R 4.4.1)
+   survival             3.6-4      2024-04-24 [2] CRAN (R 4.4.1)
+   systemfonts          1.1.0      2024-05-15 [1] CRAN (R 4.4.1)
+   terra                1.7-78     2024-05-22 [1] CRAN (R 4.4.1)
+   textshaping          0.4.0      2024-05-24 [1] CRAN (R 4.4.1)
+   TH.data              1.1-2      2023-04-17 [1] CRAN (R 4.4.1)
+ D this.path            2.5.0      2024-06-29 [1] CRAN (R 4.4.1)
+   tibble               3.2.1      2023-03-20 [1] CRAN (R 4.4.1)
+   tidyr                1.3.1      2024-01-24 [1] CRAN (R 4.4.1)
+   tidyselect           1.2.1      2024-03-11 [1] CRAN (R 4.4.1)
+   units                0.8-5      2023-11-28 [1] CRAN (R 4.4.1)
+   utf8                 1.2.4      2023-10-22 [1] CRAN (R 4.4.1)
+   vctrs                0.6.5      2023-12-01 [1] CRAN (R 4.4.1)
+   withr                3.0.0      2024-01-16 [1] CRAN (R 4.4.1)
+   xfun                 0.46       2024-07-18 [1] CRAN (R 4.4.1)
+   xtable               1.8-4      2019-04-21 [1] CRAN (R 4.4.1)
+   xts                  0.14.0     2024-06-05 [1] CRAN (R 4.4.1)
+   yaml                 2.3.9      2024-07-05 [1] CRAN (R 4.4.1)
+   zeallot              0.1.0      2018-01-28 [1] CRAN (R 4.4.1)
+   zoo                  1.8-12     2023-04-13 [1] CRAN (R 4.4.1)
 
+ [1] D:/ProgramFiles/R/R-4.4.1/userlib
+ [2] D:/ProgramFiles/R/R-4.4.1/library
 
+ D ── DLL MD5 mismatch, broken installation.
 
 ──────────────────────────────────────────────────────────────────────────────
 
 +++ RESULTS OF base::sessionInfo:
-R version 4.2.2 (2022-10-31 ucrt)
-Platform: x86_64-w64-mingw32/x64 (64-bit)
-Running under: Windows 10 x64 (build 22621)
+R version 4.4.1 (2024-06-14 ucrt)
+Platform: x86_64-w64-mingw32/x64
+Running under: Windows 11 x64 (build 22621)
 
 Matrix products: default
+
 
 locale:
 [1] LC_COLLATE=Finnish_Finland.utf8  LC_CTYPE=Finnish_Finland.utf8   
 [3] LC_MONETARY=Finnish_Finland.utf8 LC_NUMERIC=C                    
 [5] LC_TIME=Finnish_Finland.utf8    
 
+time zone: Europe/Helsinki
+tzcode source: internal
+
 attached base packages:
 [1] stats     graphics  grDevices utils     datasets  methods   base     
 
 other attached packages:
-[1] DescTools_0.99.50 future_1.33.0     ggridges_0.5.6    ggplot2_3.5.1    
+[1] DescTools_0.99.54 future_1.33.2     ggridges_0.5.6    ggplot2_3.5.1    
 
 loaded via a namespace (and not attached):
-  [1] backports_1.4.1               readxl_1.4.3                 
-  [3] systemfonts_1.0.6             plyr_1.8.9                   
-  [5] sp_2.0-0                      splines_4.2.2                
-  [7] listenv_0.9.0                 gstat_2.1-1                  
-  [9] odbc_1.5.0                    digest_0.6.35                
- [11] foreach_1.5.2                 htmltools_0.5.8.1            
- [13] fansi_1.0.6                   magrittr_2.0.3               
- [15] paletteer_1.6.0               remotes_2.5.0                
- [17] recipes_1.0.9                 globals_0.16.2               
- [19] gower_1.0.1                   xts_0.13.1                   
- [21] hardhat_1.3.0                 timechange_0.2.0             
- [23] prettyunits_1.1.1             rlas_1.7.0                   
- [25] colorspace_2.1-0              blob_1.2.4                   
- [27] rappdirs_0.3.3                ggrepel_0.9.5                
- [29] textshaping_0.3.7             xfun_0.44                    
- [31] dplyr_1.1.4                   tcltk_4.2.2                  
- [33] crayon_1.5.2                  jsonlite_1.8.8               
- [35] Exact_3.2                     zeallot_0.1.0                
- [37] survival_3.4-0                zoo_1.8-12                   
- [39] iterators_1.0.14              glue_1.7.0                   
- [41] gtable_0.3.5                  ipred_0.9-14                 
- [43] statsExpressions_1.5.4        future.apply_1.11.0          
- [45] scales_1.3.0                  mvtnorm_1.2-3                
- [47] DBI_1.2.3                     Rcpp_1.0.12                  
- [49] progress_1.2.2                units_0.8-5                  
- [51] bit_4.0.5                     proxy_0.4-27                 
- [53] stats4_4.2.2                  intervals_0.15.4             
- [55] lava_1.7.3                    prodlim_2023.08.28           
- [57] profvis_0.3.8                 collapse_2.0.12              
- [59] datawizard_0.10.0             htmlwidgets_1.6.2            
- [61] httr_1.4.7                    FNN_1.1.4                    
- [63] this.path_2.5.0               farver_2.1.2                 
- [65] pkgconfig_2.0.3               nnet_7.3-18                  
- [67] utf8_1.2.4                    here_1.0.1                   
- [69] httr2_0.2.3                   caret_6.0-94                 
- [71] labeling_0.4.3                tidyselect_1.2.1             
- [73] rlang_1.1.3                   reshape2_1.4.4               
- [75] effectsize_0.8.7              munsell_0.5.1                
- [77] cellranger_1.1.0              tools_4.2.2                  
- [79] cli_3.6.2                     generics_0.1.3               
- [81] broom_1.0.5                   evaluate_0.24.0              
- [83] stringr_1.5.1                 fastmap_1.1.1                
- [85] ragg_1.3.0                    yaml_2.3.7                   
- [87] rematch2_2.1.2                ModelMetrics_1.2.2.2         
- [89] knitr_1.47                    bit64_4.0.5                  
- [91] fitdistrplus_1.1-11           purrr_1.0.2                  
- [93] rootSolve_1.8.2.4             nlme_3.1-160                 
- [95] xml2_1.3.5                    correlation_0.8.4            
- [97] compiler_4.2.2                rstudioapi_0.15.0            
- [99] curl_5.2.1                    e1071_1.7-14                 
-[101] spacetime_1.3-1               tibble_3.2.1                 
-[103] stringi_1.8.3                 parameters_0.21.6            
-[105] lattice_0.20-45               rnaturalearthhires_1.0.0.9000
-[107] Matrix_1.5-1                  commonmark_1.9.0             
-[109] classInt_0.4-10               vctrs_0.6.5                  
-[111] pillar_1.9.0                  lifecycle_1.0.4              
-[113] data.table_1.15.4             insight_0.19.10              
-[115] lmom_3.0                      patchwork_1.2.0              
-[117] R6_2.5.1                      KernSmooth_2.23-20           
-[119] parallelly_1.36.0             gld_2.6.6                    
-[121] sessioninfo_1.2.2             codetools_0.2-18             
-[123] boot_1.3-28                   MASS_7.3-58.1                
-[125] assertthat_0.2.1              rprojroot_2.0.4              
-[127] withr_3.0.0                   rnaturalearth_1.0.1          
-[129] mgcv_1.8-41                   bayestestR_0.13.2            
-[131] expm_0.999-7                  parallel_4.2.2               
-[133] hms_1.1.3                     terra_1.7-78                 
-[135] grid_4.2.2                    rpart_4.1.19                 
-[137] timeDate_4032.109             tidyr_1.3.0                  
-[139] rnaturalearthdata_1.0.0       class_7.3-20                 
-[141] rmarkdown_2.27                sf_1.0-16                    
-[143] pROC_1.18.5                   lubridate_1.9.3              
-[145] lidR_4.1.1                    ggstatsplot_0.12.3           
+  [1] rstudioapi_0.16.0             jsonlite_1.8.8               
+  [3] datawizard_0.12.1             correlation_0.8.5            
+  [5] magrittr_2.0.3                TH.data_1.1-2                
+  [7] estimability_1.5.1            farver_2.1.2                 
+  [9] rmarkdown_2.27                ragg_1.3.2                   
+ [11] vctrs_0.6.5                   memoise_2.0.1                
+ [13] paletteer_1.6.0               terra_1.7-78                 
+ [15] effectsize_0.8.9              htmltools_0.5.8.1            
+ [17] curl_5.2.1                    broom_1.0.6                  
+ [19] cellranger_1.1.0              parallelly_1.37.1            
+ [21] KernSmooth_2.23-24            sandwich_3.1-0               
+ [23] httr2_1.0.2                   emmeans_1.10.3               
+ [25] rootSolve_1.8.2.4             zoo_1.8-12                   
+ [27] cachem_1.1.0                  lifecycle_1.0.4              
+ [29] pkgconfig_2.0.3               Matrix_1.7-0                 
+ [31] R6_2.5.1                      fastmap_1.2.0                
+ [33] fitdistrplus_1.2-1            collapse_2.0.15              
+ [35] rnaturalearthhires_1.0.0.9000 digest_0.6.36                
+ [37] Exact_3.2                     colorspace_2.1-0             
+ [39] rematch2_2.1.2                patchwork_1.2.0              
+ [41] rprojroot_2.0.4               textshaping_0.4.0            
+ [43] labeling_0.4.3                fansi_1.0.6                  
+ [45] mgcv_1.9-1                    httr_1.4.7                   
+ [47] compiler_4.4.1                here_1.0.1                   
+ [49] proxy_0.4-27                  intervals_0.15.4             
+ [51] remotes_2.5.0                 bit64_4.0.5                  
+ [53] withr_3.0.0                   backports_1.5.0              
+ [55] DBI_1.2.3                     MASS_7.3-60.2                
+ [57] rappdirs_0.3.3                sessioninfo_1.2.2            
+ [59] classInt_0.4-10               lidR_4.1.2                   
+ [61] gld_2.6.6                     rlas_1.8.0                   
+ [63] tools_4.4.1                   units_0.8-5                  
+ [65] odbc_1.5.0                    future.apply_1.11.2          
+ [67] statsExpressions_1.5.5        glue_1.7.0                   
+ [69] rnaturalearthdata_1.0.0       nlme_3.1-164                 
+ [71] grid_4.4.1                    sf_1.0-16                    
+ [73] generics_0.1.3                gtable_0.3.5                 
+ [75] class_7.3-22                  tidyr_1.3.1                  
+ [77] data.table_1.15.4             lmom_3.0                     
+ [79] hms_1.1.3                     sp_2.1-4                     
+ [81] utf8_1.2.4                    ggrepel_0.9.5                
+ [83] pillar_1.9.0                  this.path_2.5.0              
+ [85] stringr_1.5.1                 splines_4.4.1                
+ [87] dplyr_1.1.4                   lattice_0.22-6               
+ [89] renv_1.0.7                    survival_3.6-4               
+ [91] FNN_1.1.4                     bit_4.0.5                    
+ [93] ggstatsplot_0.12.4            tidyselect_1.2.1             
+ [95] knitr_1.48.1                  xfun_0.46                    
+ [97] expm_0.999-9                  stringi_1.8.4                
+ [99] yaml_2.3.9                    boot_1.3-30                  
+[101] evaluate_0.24.0               codetools_0.2-20             
+[103] tibble_3.2.1                  cli_3.6.3                    
+[105] systemfonts_1.1.0             xtable_1.8-4                 
+[107] parameters_0.22.0             munsell_0.5.1                
+[109] spacetime_1.3-1               Rcpp_1.0.12                  
+[111] readxl_1.4.3                  globals_0.16.3               
+[113] zeallot_0.1.0                 rnaturalearth_1.0.1          
+[115] coda_0.19-4.1                 parallel_4.4.1               
+[117] blob_1.2.4                    bayestestR_0.13.2            
+[119] listenv_0.9.1                 mvtnorm_1.2-5                
+[121] scales_1.3.0                  xts_0.14.0                   
+[123] e1071_1.7-14                  crayon_1.5.3                 
+[125] gstat_2.1-1                   insight_0.20.2               
+[127] purrr_1.0.2                   rlang_1.1.4                  
+[129] multcomp_1.4-25              
 
