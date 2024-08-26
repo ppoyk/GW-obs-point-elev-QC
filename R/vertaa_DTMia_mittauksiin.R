@@ -474,8 +474,8 @@ okpoints_violplot <- ggplot(data = plotdata,
   stat_summary(aes(shape="95% CI", color = "95% CI"),
                fun.data=function(x) {
                  DescTools::MedianCI(x,sides="two",method="exact") |>
-                   broom::tidy() |>
-                   tidyr::pivot_wider(names_from=names, values_from=x) |>
+                   tibble::enframe() |>
+                   tidyr::pivot_wider(names_from=name, values_from=value) |>
                    dplyr::rename(ymin=lwr.ci, y=median, ymax=upr.ci)},
                size = 0.6,linewidth=1.1, colour = "red2") +
   scale_shape_discrete("Median") + 
@@ -498,14 +498,14 @@ rm(okpoints_pntplot, okpoints_densplot, okpoints_violplot) # Clean plot objs
 # 1st LillieTest
 model_error_normality <- lapply(
   ok_refpoints[, grepl("_error$", names(ok_refpoints))],
-  FUN = function(x) DescTools::LillieTest(x) |> generics::tidy(x)) |>
+  FUN = function(x) {DescTools::LillieTest(x) |> generics::tidy()}) |>
   dplyr::bind_rows(.id = "korkeusmalli")
 # Join also results of CramerVonMises normality test
 model_error_normality <- rbind(
   model_error_normality,
   lapply(
     ok_refpoints[, grepl("_error$",names(ok_refpoints))],
-    FUN = function(x) DescTools::CramerVonMisesTest(x) |> generics::tidy(x)) |>
+    FUN = function(x) {DescTools::CramerVonMisesTest(x) |> generics::tidy()}) |>
     dplyr::bind_rows(.id = "korkeusmalli"))
 # Print which distributions are normal (p > 0.05)
 dplyr::filter(model_error_normality, p.value > 0.05)
@@ -514,34 +514,36 @@ dplyr::filter(model_error_normality, p.value > 0.05)
 # Show indicators for this accepted group of points
 # MAE
 c_mae <- lapply(ok_refpoints[, grepl("_error$", names(ok_refpoints))],
-                function(x) DescTools::MAE(x, ref = DescTools::Quantile(
-                  x, probs=.5, weights = 1/(ok_refpoints$Vt_Prec^2))) |> broom::tidy(x)) |>
-  dplyr::bind_rows(.id = "korkeusmalli") |> dplyr::arrange(x)
+                function(x) {DescTools::MAE(x, ref = DescTools::Quantile(
+                  x, probs=.5, weights = 1/(ok_refpoints$Vt_Prec^2))) |>
+                  tibble::tibble(y=_)}) |>
+  dplyr::bind_rows(.id = "korkeusmalli") |> dplyr::arrange(y)
 # RMSE
 c_rmse <- lapply(ok_refpoints[, grepl("_error$", names(ok_refpoints))],
-                 function(x) DescTools::RMSE(x, ref = DescTools::Quantile(
-                   x, probs=.5, weights = 1/(ok_refpoints$Vt_Prec^2))) |> broom::tidy(x)) |>
-  dplyr::bind_rows(.id = "korkeusmalli") |> dplyr::arrange(x)
+                 function(x) {DescTools::RMSE(x, ref = DescTools::Quantile(
+                   x, probs=.5, weights = 1/(ok_refpoints$Vt_Prec^2))) |>
+                   tibble::tibble(y=_)}) |>
+  dplyr::bind_rows(.id = "korkeusmalli") |> dplyr::arrange(y)
 # Maximum error
 c_maxerr <- lapply(ok_refpoints[, grepl("_error$", names(ok_refpoints))],
-                   function(x) max(abs(x)) |> broom::tidy(x)) |>
-  dplyr::bind_rows(.id = "korkeusmalli") |> dplyr::arrange(abs(x))
+                   function(x) {max(abs(x)) |> tibble::tibble(y=_)}) |>
+  dplyr::bind_rows(.id = "korkeusmalli") |> dplyr::arrange(abs(y))
 # Median error
 c_median <- lapply(ok_refpoints[, grepl("_error$", names(ok_refpoints))],
-                   function(x) median(x) |> broom::tidy(x)) |>
-  dplyr::bind_rows(.id = "korkeusmalli") |> dplyr::arrange(abs(x))
+                   function(x) {median(x) |> tibble::tibble(y=_)}) |>
+  dplyr::bind_rows(.id = "korkeusmalli") |> dplyr::arrange(abs(y))
 # Weighted median error
 c_wgt_median <- lapply(ok_refpoints[, grepl("_error$", names(ok_refpoints))],
                    function(x) {DescTools::Quantile(
                      x, probs=.5, weights = 1/(ok_refpoints$Vt_Prec^2)) |>
-                       broom::tidy(x)}) |>
-  dplyr::bind_rows(.id = "korkeusmalli") |> dplyr::arrange(abs(x))
+                       tibble::tibble(y=_)}) |>
+  dplyr::bind_rows(.id = "korkeusmalli") |> dplyr::arrange(abs(y))
 # Weighted MAD of error
 c_wgt_mad <- lapply(ok_refpoints[, grepl("_error$",names(ok_refpoints))],
                 function(x)DescTools::MAD(
                   x, weights = 1/(ok_refpoints$Vt_Prec^2)) |>
-                  broom::tidy(x)) |>
-  dplyr::bind_rows(.id = "korkeusmalli") |> dplyr::arrange(x)
+                  tibble::tibble(y=_)) |>
+  dplyr::bind_rows(.id = "korkeusmalli") |> dplyr::arrange(y)
 
 # (Not ultimately included) Normalized Median Absolute Deviation (NMAD):
 # The NMAD is proportional to the median of the absolute differences between
@@ -552,11 +554,12 @@ NMAD <- function(data) 1/qnorm(0.75) * median(abs( data - median(data) ))
 c_wgt_nmad <- lapply(ok_refpoints[, grepl("_error$",names(ok_refpoints))], NMAD) |>
   dplyr::bind_rows(.id = "korkeusmalli") |>
   tidyr::pivot_longer(cols=tidyr::everything(),
-                      names_to="korkeusmalli", values_to="x") |> dplyr::arrange(x)
+                      names_to="korkeusmalli", values_to="y") |> dplyr::arrange(y)
 
 # Collect the sorted results of model comparisons
-model_comparison <-
-  cbind(c_mae,c_rmse,c_maxerr,c_median,c_wgt_median[,c("korkeusmalli","x")],c_wgt_mad)
+model_comparison <- data.frame(
+  cbind(c_mae,c_rmse,c_maxerr,c_median,c_wgt_median,c_wgt_mad),
+  check.names = FALSE)
 # Set names of columns
 nms <-
   as.vector(
