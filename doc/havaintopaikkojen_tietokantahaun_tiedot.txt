@@ -1,5 +1,5 @@
 Tämä tiedosto päivitetään automaattisesti, kun havaintopaikkojen tiedot tallennetaan tietokannasta levylle
 
-Analyysissä käytetyt havaintopaikkojen tiedot ladattu Ympäristöhallinnon pohjavesitietokannasta: 2024-07-31 10:23:00.165237
+Analyysissä käytetyt havaintopaikkojen tiedot ladattu Ympäristöhallinnon pohjavesitietokannasta: 2024-08-26 08:50:34.223532
 
 Hakulauseen muotoutuminen dokumentoitu funktiossa /R/funktiot/fun_hae_paikat.R

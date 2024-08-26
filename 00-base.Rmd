@@ -1341,7 +1341,7 @@ putki_yhd_temp <- merge(
 
 # Remove top elevs for locations other than wells and monitoring pipes
 for (i in 1:nrow(putki_yhd_temp)) {
-  # Check that type is NOT monitoring pipe (incl. some mstre meters) or well
+  # Check that type is NOT monitoring pipe (incl. some moistre meters) or well
   if (!putki_yhd_temp[i, "PaikkaTyyppi_Id"] %in%
       c("Havaintoputki","Kaivo","Maankosteusmittari")) {
     # Set NA to all cols relating to "pipe" top value
@@ -1391,8 +1391,8 @@ for (i in 1:nrow(hard_fixes)) { # Apply the hardcode fixes table
     putki_yhd_temp[putki_yhd_temp$paikka_id == hard_fixes[i,"val_from"],
                    c("yla","yla_source","yla_verif","maa","maa_source","maa_verif")]
   # Unused method (the flexibility is not needed in this case)
-  # test <- replace_w_key(test,"paikka_id",
-  #                       toK=hard_fixes[i,"val_to"],vars=c("yla","maa"),fromK=hard_fixes[i, "val_from"])
+  # test <- replace_w_key(test,"paikka_id", toK=hard_fixes[i,"val_to"],
+  #   vars=c("yla","maa"),fromK=hard_fixes[i, "val_from"])
 }
 rm(hard_fixes)
 
@@ -1498,6 +1498,7 @@ putki_yhd_trim <- putki_yhd_trim[
       75674, 7747, 7861, 7862, 7817, 7735, 7732, 41512, 43463, 53120, 75435,
       7816, 7808, 7802, 17997, 7740, 3839, 24911, 7133, 7174, 7126, 69436,
       88424, 88425), ]
+
 
 # All dropped cases above must be handled at a later date by communications and
 # manual data updates in cases where updating is deemed to be OK. 
