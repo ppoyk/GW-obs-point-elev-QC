@@ -1493,15 +1493,31 @@ putki_yhd_trim <- putki_yhd_trim[!putki_yhd_trim$PaikkaTyyppi_Id %in% "Lumikeppi
 
 # Drop select VARELY autom.devices.(observations are uploaded via custom process)
 putki_yhd_trim <- putki_yhd_temp[!putki_yhd_temp$paikka_id %in%
-                                   c(52191, 52845, 54763, 59979, 59983, 60177,
+                                   c(52845, 54763, 59979, 59983, 60177,
                                      59788, 62327, 66770, 74869, 75020, 75021), ]
 
 
 # All dropped cases above must be handled at a later date by communications and
 # manual data updates in cases where updating is deemed to be OK. 
 
+# Code to check that man am pair coords are equal
+for (i in seq_len(nrow(link_am_man))) {
+  id1 <- link_am_man[i, 1]
+  id2 <- link_am_man[i, 2]
+  if (!(id1 %in% kaikki_paikat$paikka_id && id2 %in% kaikki_paikat$paikka_id)) {
+      warning(paste("Paikka_id:itä",id1,id2,"ei löydy paikkataulusta!"))
+  } else {
+    pai1 <- kaikki_paikat[kaikki_paikat$paikka_id == id1, ]
+    pai2 <- kaikki_paikat[kaikki_paikat$paikka_id == id2, ]
+    
+    if ((pai1$lon != pai2$lon) | (pai1$lat != pai2$lat))
+      cat("DB ero:",pai1$tunnus,pai1$paikka_id,"¤", pai2$tunnus,pai2$paikka_id,"\n")
+    if ((!pai1$yhd_lon %in% pai2$yhd_lon) | !(pai1$yhd_lat %in% pai2$yhd_lat))
+      cat("ELYkrd ero:",pai1$tunnus,pai1$paikka_id,"¤",pai2$tunnus,pai2$paikka_id,"\n")
+  }
+}
+rm(id1,id2, pai1,pai2)
 
-# Drop rows where man and autom. have matching elevs (0 diff)
 
 # TODO drop asemat joissa epäilyttäviä linkityksiä
 
