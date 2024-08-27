@@ -1318,15 +1318,16 @@ if (all(putki_yhd_temp[is.na(putki_yhd_temp$yla),"paikka_id"] > 90000))
 
 
 # Perform sanity checks on the data
-stopifnot(!anyNA(putki_yhd_temp$yla)) # All elevs filled
-stopifnot(!anyNA(putki_yhd_temp$maa))
-stopifnot(!anyNA(putki_yhd_temp$yla_source)) # All sources filled
-stopifnot(!anyNA(putki_yhd_temp$maa_source))
-stopifnot(all(putki_yhd_temp$maa > -5)) # All ground elevs > -5m
-stopifnot(all(putki_yhd_temp$yla < 1300)) # All pipe tops <1300m
-stopifnot(all(putki_yhd_temp$yla - putki_yhd_temp$maa > 0.1)) #Visible sections >10cm
-stopifnot(all(putki_yhd_temp$yla - putki_yhd_temp$maa < 2)) #Visible sections <2m
-stopifnot(all(putki_yhd_temp$yla > putki_yhd_temp$maa)) #All tops above ground
+elevtbl_sanitycheck <- function(tbl) {
+  stopifnot(!anyNA(tbl$yla), !anyNA(tbl$maa)) # Elevs filled
+  stopifnot(!anyNA(tbl$yla_source), !anyNA(tbl$maa_source)) # Sources filled
+  stopifnot(all(tbl$maa > -5), all(tbl$maa < 1300)) # Ground elevs in [-5m, 1300m]
+  stopifnot(all(tbl$yla > -5), all(tbl$yla < 1300)) # Top elevs in [-5m, 1300m]
+  stopifnot(all(tbl$yla - tbl$maa > 0.1)) #Visible sections >10cm
+  stopifnot(all(tbl$yla - tbl$maa < 2)) #Visible sections <2m
+  stopifnot(all(tbl$yla > tbl$maa)) #All tops above ground
+}
+elevtbl_sanitycheck(putki_yhd_temp)
 
 
 # Add identifying information to the table (for possible manual checks and sorting)
@@ -1549,6 +1550,12 @@ putki_korkeudet_outfile <-
 putki_korkeudet_outfile <-
   dplyr::mutate_if(putki_korkeudet_outfile, is.numeric, ~round(., 2)) |>
   dplyr::mutate(PaikkaTyyppi_Id = as.numeric(PaikkaTyyppi_Id))
+
+
+# Perform last cheks
+elevtbl_sanitycheck(putki_yhd_temp)
+elevtbl_sanitycheck(putki_yhd_trim)
+elevtbl_sanitycheck(putki_korkeudet_outfile)
 
 # Write the results to a file
 data.table::fwrite(putki_korkeudet_outfile,
