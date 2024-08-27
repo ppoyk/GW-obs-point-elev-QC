@@ -1469,43 +1469,36 @@ for (i in 1:nrow(link_am_man)) {
 rm(a_id,m_id,p_a,p_m, new_maa,new_yla, yla_src_prio,maa_src_prio, src, diff_lim)
 
 
-# Drop suspected bad ELY measurements (later possibly replaced with DTM and KM2 values)
-#bad_ely_elev <- putki_yhd_temp[putki_yhd_temp$yla_verif %in% c("ELY_IN_DB?"), ]
-# TODO jos ELYn mittauksen vertailutulokset ovat huonot , siirrytäänkö suoraan
-# tarkistamaan korkeusmallien tarkastukseen, eikä oteta ELYä huomioon?
+
+#### Set some elevations in the results manually based on more detailed inspections
+source(file.path(root,"R","outkorkeus_investigated_fixes.R"))
+
+
+### Drop some places from the results.
+# Create a table copy, where all drops happen.
+putki_yhd_trim <- putki_yhd_temp
+
+# Perform id/station drops. Based on manual investigations. Only affects putki_yhd_trim
+# (Some will be included later as an appendix upload, once their situation is clearer)
+source(file.path(root,"R","outkorkeus_investigated_omits.R"))
+
+# Drop snowsticks from the db upload table (sticks missing grnd.elev definition)
+putki_yhd_trim <- putki_yhd_trim[!putki_yhd_trim$PaikkaTyyppi_Id %in% "Lumikeppi",]
+
 
 # TODO Drop also stations which have potentially other members/organisations utilizing
 # the observations. (Old VHSP-stations)
 
-
 # Also drop structures relating to some waterworks.
-
 
 # Drop select VARELY autom.devices.(observations are uploaded via custom process)
 putki_yhd_trim <- putki_yhd_temp[!putki_yhd_temp$paikka_id %in%
                                    c(52191, 52845, 54763, 59979, 59983, 60177,
                                      59788, 62327, 66770, 74869, 75020, 75021), ]
-# Drop quality monitoring pipes at most stations
-# (gw elevs sent wrong, timeseries would break if top elev changes)
-# (should include SeSu places)
-putki_yhd_trim <- putki_yhd_trim[
-  !putki_yhd_trim$paikka_id %in%
-    c(7781, 7775, 7779, 41028, 3453, 3454, 2615, 2616, 3455, 3456, 2617, 9167,
-      9169, 5006, 4208, 7769, 11739, 40032, 40017, 37314, 78135, 7768, 47180,
-      54272, 88516, 82298, 45946, 14522, 69447, 58880, 88501, 7777, 7772, 7764,
-      40914, 42279, 64688, 40143, 39192, 39445, 14491, 11583, 7836, 7833, 49839,
-      7853, 7850, 7827, 14369, 14371, 21719, 69776, 7830, 47492, 71342, 73700,
-      75674, 7747, 7861, 7862, 7817, 7735, 7732, 41512, 43463, 53120, 75435,
-      7816, 7808, 7802, 17997, 7740, 3839, 24911, 7133, 7174, 7126, 69436,
-      88424, 88425), ]
 
 
 # All dropped cases above must be handled at a later date by communications and
 # manual data updates in cases where updating is deemed to be OK. 
-
-# TODO Ensure that pairs of manual and autom. pipes have the same elev values
-
-
 
 
 # Drop rows where man and autom. have matching elevs (0 diff)
