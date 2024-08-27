@@ -1366,9 +1366,8 @@ putki_yhd_temp <- putki_yhd_temp[!putki_yhd_temp$PaikkaTyyppi_Id %in%
 #### Ensure that pairs of manual and autom. pipes have the same elev values
 link_am_man <- hae_PaikkaAutomaattiManuaali() # Fetch link table
 
-putki_yhd_temp_backup #  <- putki_yhd_temp
-# Pre-emptively set some known exceptions
-# (Hardcoded fixes)
+putki_yhd_temp_backup <- putki_yhd_temp
+# Pre-emptively set some known exceptions (Hardcoded fixes)
 hard_fixes <- tibble::tribble(
   ~val_from, ~val_to,
   60853, 47909, # 0302p5bAM->p5b
@@ -1385,8 +1384,8 @@ hard_fixes <- tibble::tribble(
   42041, 85987, # 0801p1b->0801p1bAM
   86023, 9944   # 1209limAM->1209p10(limni)
 ) |> as.data.frame()
-
-for (i in 1:nrow(hard_fixes)) { # Apply the hardcode fixes table
+# Apply the hardcode fixes table
+for (i in 1:nrow(hard_fixes)) {
   putki_yhd_temp[putki_yhd_temp$paikka_id == hard_fixes[i,"val_to"],
                  c("yla","yla_source","yla_verif","maa","maa_source","maa_verif")] <-
     putki_yhd_temp[putki_yhd_temp$paikka_id == hard_fixes[i,"val_from"],
@@ -1407,7 +1406,7 @@ maa_src_prio <- c("Pietari-Pietari","DB-Pietari","DB-ELY","DB","DB-MISSING",
 stopifnot(length(unique(putki_yhd_temp$maa_source)) == length(maa_src_prio))
 # Set limit of 1m as the max change between man and AM
 diff_lim <- 1 # (stops if exceeded, manual investigations possibly needed)
-
+# Go through the man-AM pairs, select the better found source for both of them
 for (i in 1:nrow(link_am_man)) {
   # Get ids from link table
   a_id <- link_am_man[i, "AutomaattiPaikka_Id"]
@@ -1560,6 +1559,13 @@ elevtbl_sanitycheck(putki_korkeudet_outfile)
 # Write the results to a file
 data.table::fwrite(putki_korkeudet_outfile,
   check_dir(D$tulokset,"korkeudet","korkeudet_tietokantaan_DRAFT.csv", ensure = T),
+  dec = ".", sep = ";", bom = T, )
+
+# Write also the full resulting dataset. 
+# Includes values for places, which were not wanted in the large db update
+# (top elevs for ground frost pipes, )
+data.table::fwrite(putki_yhd_temp,
+  check_dir(D$tulokset,"korkeudet","korkeudet_FULL_DATA.csv", ensure = T),
   dec = ".", sep = ";", bom = T, )
 
 ```
