@@ -165,5 +165,9 @@ set_yla_from_dtm(45779); set_maa_w_putki(45779) # p9b
 set_yla_from_db(63979); set_maa_w_putki(63979) # p1AM
 set_yla_w_id(14363, from = 63979); set_maa_w_id(14363, from = 63979) # p1
 
+# ASEMIA
 
+# Taikkomäki Karstula 0904 p10b ja p10bAM tietokannan mukaisiksi. ELY sus.
+set_yla_from_db(44421); set_maa_w_putki(44421) # p10b
+set_yla_w_id(82236, from = 44421); set_maa_w_id(82236, from = 44421) # p10bAM
 
