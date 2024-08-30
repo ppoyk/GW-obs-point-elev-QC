@@ -9,7 +9,7 @@
 # Function to set the maa with current pipetop minus the pipe vis.len 
 # Option to set the pipe len manually.
 set_maa_w_putki <- function(id, putki = NULL) {
-  if (is.null(pipe)) {
+  if (is.null(putki)) {
     putki_yhd_temp[putki_yhd_temp$paikka_id == id, "maa"] <- 
       putki_yhd_temp[putki_yhd_temp$paikka_id == id,"yla"] -
       putki_yhd_temp[putki_yhd_temp$paikka_id == id,"putki"]
@@ -158,7 +158,40 @@ set_yla_from_dtm(10132); set_maa_w_putki(10132) # p7
 set_yla_w_id(88330, from = 10132); set_maa_w_id(88330, from = 10132) # p7AM
 set_yla_from_dtm(45779); set_maa_w_putki(45779) # p9b
 
-# ASEMIA VÄLIIN
+# Kangaslahti Rautavaara 0603 p6b,p7b yläp vanh putkista miinus b- ja ei-b-putkien vanh ero (jotka valokuv mukaiset)
+putki_yhd_temp[putki_yhd_temp$paikka_id == 41917, "yla"] <- #p6b:n yläksi...
+  putki_yhd_temp[putki_yhd_temp$paikka_id == 10018, "yla"] - #p6:n val.ylä, miin
+  (putki_yhd_temp[putki_yhd_temp$paikka_id == 10018, "yla_db"] - #6sten vanh ero
+     putki_yhd_temp[putki_yhd_temp$paikka_id == 41917, "yla_db"])
+set_maa_w_putki(41917)
+putki_yhd_temp[putki_yhd_temp$paikka_id == 41918, "yla"] <- #p7b:n yläksi...
+  putki_yhd_temp[putki_yhd_temp$paikka_id == 10019, "yla"] - #p7:n val.ylä, miin
+  (putki_yhd_temp[putki_yhd_temp$paikka_id == 10019, "yla_db"] - #7jen vanh ero
+     putki_yhd_temp[putki_yhd_temp$paikka_id == 41918, "yla_db"])
+set_maa_w_putki(41918)
+set_yla_w_id(54425, from = 41918); set_maa_w_id(54425, from = 41918) # p7bAM
+# Kangaslahti0603 p9b:lle p9:n maanpinta(-74 vaait) +p9b putk pituus (valokuv arv)
+set_maa_w_id(41920, from = 10021) # Aseta aluksi p9b maa p9:n mukaan
+putki_yhd_temp[putki_yhd_temp$paikka_id == 41920, "yla"] <- #p9b ylä putk pit muk
+  putki_yhd_temp[putki_yhd_temp$paikka_id == 41920, "maa"] +
+  putki_yhd_temp[putki_yhd_temp$paikka_id == 41920, "putki"]
+
+# Kuuksenvaara Ilomantsi 0701 p4 ja p4b yläpää DTM:stä
+set_yla_from_dtm(10557); set_maa_w_putki(10557) # p4
+set_yla_from_dtm(41040); set_maa_w_putki(41040) # p4b
+# Kuuksenvaara Ilomantsi 0701 p5 yläpää tietokannasta (tark uud.ajon jälkeen!)
+
+# Kuuksenvaara Ilomantsi 0701 p2 yläpksi p2b:n yläp miin 15 cm 
+putki_yhd_temp[putki_yhd_temp$paikka_id == 9476, "yla"] <-
+  putki_yhd_temp[putki_yhd_temp$paikka_id == 41037, "yla"] - 0.15
+set_maa_w_putki(9476)
+# Kuuksenvaara Ilomantsi 0701 p10 yläpääksi p10b:n yläpää plus 10 cm 
+putki_yhd_temp[putki_yhd_temp$paikka_id == 10563, "yla"] <-
+  putki_yhd_temp[putki_yhd_temp$paikka_id == 41045, "yla"] + 0.10
+set_maa_w_putki(10563)
+# Kuuksenvaara Ilomantsi 0701 p3b yläpää KM2:sta
+set_yla_from_km2(41039); set_maa_w_putki(41039)
+
 
 
 # Hietajärvi Patvinsuo 0705 p1AM yläp tietokannasta, p1 identtiseksi p1AM kanssa
