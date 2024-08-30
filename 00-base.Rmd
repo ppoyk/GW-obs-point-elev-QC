@@ -16,9 +16,6 @@ Elevation system N2000
 Coordinate system ETRS-TM35FIN
 
 ```{r kaynnistys, echo=F, results='hide'}
-# Kirjastojen asennus hoituu {renv} kautta
-# Tarvittaessa renv::init()
-
 # Tuodaan ohjelman käyttäytymistä määrittävät käyttäjän asetukset ympäristöön
 source("USERCONF.R")
 
@@ -41,9 +38,10 @@ pkgs <- c("rmarkdown","ggplot2","ggstatsplot","ggrepel","ggridges","lidR",
 if (curl::has_internet()) {
   utils::install.packages(pkgs[!(pkgs %in% installed.packages(noCache = T))],
                           dependencies = TRUE)
-  if (!"rnaturalearthhires" %in% installed.packages()) {
+  if (!("rnaturalearthhires" %in% installed.packages())) {
     remotes::install_github("ropensci/rnaturalearthhires")
-  }}
+  }
+}
 
 # Ainoat paketit jotka aktivoidaan kokonaan käytön helpottamiseksi
 # (muita käytetään eksplisiittisesti, paketti::funktio)
@@ -1118,6 +1116,7 @@ l_km2[[1]] <- l_km2[[1]] * -1 # Lower boundary returned back to negative
 # As the model errors were calculated by "true - model", the same order is
 # required when checking whether the difference is within the confidence interval
 
+
 # Loop through all places for ground elevation and pipe top value.
 # Handle pipe tops 1st, as they have the potential to be more correct
 # Ground elevs are inferred from pipe tops, such that visible pipe sections are
@@ -1318,16 +1317,18 @@ if (all(putki_yhd_temp[is.na(putki_yhd_temp$yla),"paikka_id"] > 90000))
 
 
 # Perform sanity checks on the data
-elevtbl_sanitycheck <- function(tbl) {
-  stopifnot(!anyNA(tbl$yla), !anyNA(tbl$maa)) # Elevs filled
-  stopifnot(!anyNA(tbl$yla_source), !anyNA(tbl$maa_source)) # Sources filled
-  stopifnot(all(tbl$maa > -5), all(tbl$maa < 1300)) # Ground elevs in [-5m, 1300m]
-  stopifnot(all(tbl$yla > -5), all(tbl$yla < 1300)) # Top elevs in [-5m, 1300m]
-  stopifnot(all(tbl$yla - tbl$maa > 0.1)) #Visible sections >10cm
-  stopifnot(all(tbl$yla - tbl$maa < 2)) #Visible sections <2m
-  stopifnot(all(tbl$yla > tbl$maa)) #All tops above ground
+elevtbl_sanitycheck <- function(tbl, skip_yla_tyyppi = NULL) {
+  tlb_skip <- tbl[!tbl$PaikkaTyyppi_Id %in% skip_yla_tyyppi, ]
+  stopifnot(!anyNA(tlb_skip$yla), !anyNA(tbl$maa)) # Elevs filled
+  stopifnot(!anyNA(tlb_skip$yla_source), !anyNA(tbl$maa_source)) #Sources filled
+  stopifnot(all(tbl$maa > -5), all(tbl$maa < 1300)) #Ground elevs in [-5;1300]m
+  stopifnot(all(tlb_skip$yla > -5),all(tlb_skip$yla < 1300)) #Top elevs [-5;1300]m
+  stopifnot(all(tlb_skip$yla - tlb_skip$maa > 0.1)) #Visible sections >10cm
+  stopifnot(all(tlb_skip$yla - tlb_skip$maa < 2)) #Visible sections <2m
+  stopifnot(all(tlb_skip$yla > tlb_skip$maa)) #All tops above ground
+  message("Elevation table sanity check passed")
 }
-elevtbl_sanitycheck(putki_yhd_temp)
+elevtbl_sanitycheck(putki_yhd_temp)#No types skipped, above loop should fill all
 
 
 # Add identifying information to the table (for possible manual checks and sorting)
@@ -1466,8 +1467,8 @@ for (i in 1:nrow(link_am_man)) {
   }
   
 }
-rm(a_id,m_id,p_a,p_m, new_maa,new_yla, yla_src_prio,maa_src_prio, src, diff_lim)
-
+rm(a_id,m_id,p_a,p_m, yla_src_prio,maa_src_prio, src, diff_lim)
+suppressWarnings(rm(new_maa, new_yla))#might be missing(fresh vars ensured above)
 
 
 #### Set some elevations in the results manually based on more detailed inspections
@@ -1475,18 +1476,16 @@ source(file.path(root,"R","outkorkeus_investigated_fixes.R"))
 
 
 ### Drop some places from the results.
-# Create a table copy, where all drops happen.
 putki_yhd_trim <- putki_yhd_temp
-
-# Perform id/station drops. Based on manual investigations. Only affects putki_yhd_trim
-# (Some will be included later as an appendix upload, once their situation is clearer)
+# Do id/station drops. Based on manual investigations. Only affects putki_yhd_trim
+# (Some of the now-dropped will be included later in an appendix upload)
 source(file.path(root,"R","outkorkeus_investigated_omits.R"))
-
 # Drop snowsticks from the db upload table (sticks missing grnd.elev definition)
 putki_yhd_trim <- putki_yhd_trim[!putki_yhd_trim$PaikkaTyyppi_Id %in% "Lumikeppi",]
 
 
 # TODO Drop also stations which have potentially other members/organisations utilizing
+# TODO Drop stations which have potentially other members/organisations utilizing
 # the observations. (Old VHSP-stations)
 
 # Also drop structures relating to some waterworks.
@@ -1517,7 +1516,6 @@ for (i in seq_len(nrow(link_am_man))) {
   }
 }
 rm(id1,id2, pai1,pai2)
-
 
 # TODO drop asemat joissa epäilyttäviä linkityksiä
 
