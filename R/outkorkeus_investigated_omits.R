@@ -44,4 +44,11 @@ drop_station("0504")
 # Raikuunkangas 0508 koko asema. Ei as.dokumentoitu, epäselvät linkitykset
 drop_station("0508")
 
+# Akonjoki Sonkajärvi 0604 koko asema. Huonoja maastomittauksia, vaikea maasto.
+drop_station("0604")
+
+# Kruunupyy 0806 koko asema. EI AJETA MYÖHEMMINKÄÄN, AS. POISTUMASSA SEURANNASTA
+drop_station("0806")
+
+
 
