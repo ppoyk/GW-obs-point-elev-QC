@@ -1476,6 +1476,7 @@ source(file.path(root,"R","outkorkeus_investigated_fixes.R"))
 
 
 ### Drop some places from the results.
+# Create a table copy, where all drops happen
 putki_yhd_trim <- putki_yhd_temp
 # Do id/station drops. Based on manual investigations. Only affects putki_yhd_trim
 # (Some of the now-dropped will be included later in an appendix upload)
@@ -1484,16 +1485,9 @@ source(file.path(root,"R","outkorkeus_investigated_omits.R"))
 putki_yhd_trim <- putki_yhd_trim[!putki_yhd_trim$PaikkaTyyppi_Id %in% "Lumikeppi",]
 
 
-# TODO Drop also stations which have potentially other members/organisations utilizing
 # TODO Drop stations which have potentially other members/organisations utilizing
 # the observations. (Old VHSP-stations)
 
-# Also drop structures relating to some waterworks.
-
-# Drop select VARELY autom.devices.(observations are uploaded via custom process)
-putki_yhd_trim <- putki_yhd_temp[!putki_yhd_temp$paikka_id %in%
-                                   c(52845, 54763, 59979, 59983, 60177,
-                                     59788, 62327, 66770, 74869, 75020, 75021), ]
 
 
 # All dropped cases above must be handled at a later date by communications and
@@ -1546,34 +1540,49 @@ rm(test)
 
 
 #### Save the collated pipe top and ground elevation file
+# Perform last cheks
+elevtbl_sanitycheck(putki_yhd_temp,
+                    skip_yla_tyyppi = c("Routaputki","Lumikeppi","Lysimetri"))
+elevtbl_sanitycheck(putki_yhd_trim,
+                    skip_yla_tyyppi = c("Routaputki","Lumikeppi","Lysimetri"))
+
 # Select only required cols
-putki_korkeudet_outfile <-
+korkeudet_outfile <-
   putki_yhd_trim[ ,c("paikka_id","tunnus","asema_tunnus","asema_nimi",
                      "PaikkaTyyppi_Id","yla","yla_source","yla_verif",
                      "maa","maa_source","maa_verif","KM2_laatu")]
-
 #Round numeric cols to two decimal digits
-putki_korkeudet_outfile <-
-  dplyr::mutate_if(putki_korkeudet_outfile, is.numeric, ~round(., 2)) |>
+korkeudet_outfile <-
+  dplyr::mutate_if(korkeudet_outfile, is.numeric, ~round(., 2)) |>
   dplyr::mutate(PaikkaTyyppi_Id = as.numeric(PaikkaTyyppi_Id))
+# Order into a sensible order
+korkeudet_outfile <-
+  korkeudet_outfile[stringr::str_order(korkeudet_outfile$tunnus, numeric = T), ]
+korkeudet_outfile <- korkeudet_outfile[order(korkeudet_outfile$asema_tunnus), ]
+# Warn of IDs which would be uploaded but are not included in the investigated tbl
+checked <- data.table::fread("Miralle_DRAFT_korkeudet_CHECKED.csv")$paikka_id
+for (id in korkeudet_outfile$paikka_id) {
+  if (!(id %in% checked)) warning("ID ",id," puuttuu tarkistettujen taulusta!")
+}; rm(checked)
 
+# Write the Muonio 1305 station test case
+data.table::fwrite(
+  korkeudet_outfile[korkeudet_outfile$asema_tunnus %in% "1305", ],
+  check_dir(D$tulokset,"korkeudet","korkeudet_tietokantaan_MUONIO.csv"),
+  dec = ".", sep = ";", bom = T)
 
-# Perform last cheks
-elevtbl_sanitycheck(putki_yhd_temp)
-elevtbl_sanitycheck(putki_yhd_trim)
-elevtbl_sanitycheck(putki_korkeudet_outfile)
-
-# Write the results to a file
-data.table::fwrite(putki_korkeudet_outfile,
-  check_dir(D$tulokset,"korkeudet","korkeudet_tietokantaan_DRAFT.csv", ensure = T),
-  dec = ".", sep = ";", bom = T, )
+# Write the results to a file (Sans MUONIO)
+data.table::fwrite(
+  korkeudet_outfile[!(korkeudet_outfile$asema_tunnus %in% "1305"), ],
+  check_dir(D$tulokset,"korkeudet","korkeudet_tietokantaan_DRAFT.csv"),
+  dec = ".", sep = ";", bom = T)
 
 # Write also the full resulting dataset. 
 # Includes values for places, which were not wanted in the large db update
 # (top elevs for ground frost pipes, )
 data.table::fwrite(putki_yhd_temp,
-  check_dir(D$tulokset,"korkeudet","korkeudet_FULL_DATA.csv", ensure = T),
-  dec = ".", sep = ";", bom = T, )
+  check_dir(D$tulokset,"korkeudet","korkeudet_FULL_DATA.csv"),
+  dec = ".", sep = ";", bom = T)
 
 ```
 
