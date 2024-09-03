@@ -1,5 +1,5 @@
 Tämä tiedosto päivitetään automaattisesti, kun pohjavesiasemien tiedot tallennetaan tietokannasta levylle
 
-Analyysissä käytetyt pohjavesiasemien tiedot ladattu Ympäristöhallinnon pohjavesitietokannasta: 2024-08-26 08:50:30.54762
+Analyysissä käytetyt pohjavesiasemien tiedot ladattu Ympäristöhallinnon pohjavesitietokannasta: 2024-09-03 11:56:41.074909
 
 Hakulauseen muotoutuminen kuvattu funktiossa /R/funktiot/fun_hae_asematiedot.R

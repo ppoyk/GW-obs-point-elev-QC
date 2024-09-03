@@ -1484,14 +1484,9 @@ source(file.path(root,"R","outkorkeus_investigated_omits.R"))
 # Drop snowsticks from the db upload table (sticks missing grnd.elev definition)
 putki_yhd_trim <- putki_yhd_trim[!putki_yhd_trim$PaikkaTyyppi_Id %in% "Lumikeppi",]
 
-
-# TODO Drop stations which have potentially other members/organisations utilizing
-# the observations. (Old VHSP-stations)
-
-
-
 # All dropped cases above must be handled at a later date by communications and
 # manual data updates in cases where updating is deemed to be OK. 
+
 
 # Code to check that man am pair coords are equal
 for (i in seq_len(nrow(link_am_man))) {

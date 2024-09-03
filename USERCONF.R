@@ -14,7 +14,7 @@ USERCONF <- list(
   ### MML:n 2x2m tarkkuuden maankorkeusaineisto (KM2):
   # Halutaanko ladata maanpintadata Maanmittauslaitoksen sivuilta, riippumatta
   # siitä onko aineisto jo olemassa levyllä?
-  pakota_lataus_KM2 = F,
+  pakota_lataus_KM2 = F, # Download takes a while, up to 1h
   
   ### Aineiston rajaamisen marginaalit latauksessa 
   # Asetetaan marginaali ladattavalle 2x2m maankorkeusaineistolle metreinä.
