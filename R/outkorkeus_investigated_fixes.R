@@ -179,8 +179,6 @@ putki_yhd_temp[putki_yhd_temp$paikka_id == 41920, "yla"] <- #p9b ylä putk pit m
 # Kuuksenvaara Ilomantsi 0701 p4 ja p4b yläpää DTM:stä
 set_yla_from_dtm(10557); set_maa_w_putki(10557) # p4
 set_yla_from_dtm(41040); set_maa_w_putki(41040) # p4b
-# Kuuksenvaara Ilomantsi 0701 p5 yläpää tietokannasta (tark uud.ajon jälkeen!)
-
 # Kuuksenvaara Ilomantsi 0701 p2 yläpksi p2b:n yläp miin 15 cm 
 putki_yhd_temp[putki_yhd_temp$paikka_id == 9476, "yla"] <-
   putki_yhd_temp[putki_yhd_temp$paikka_id == 41037, "yla"] - 0.15
@@ -192,15 +190,212 @@ set_maa_w_putki(10563)
 # Kuuksenvaara Ilomantsi 0701 p3b yläpää KM2:sta
 set_yla_from_km2(41039); set_maa_w_putki(41039)
 
+# Jaamankangas 0702 p2b yläpää KM2:sta
+set_yla_from_km2(40881); set_maa_w_putki(40881)
 
+# Jakokoski Kontiolahti 0703 p7 ja p10 yläpää tietokannasta
+set_yla_from_db(10081); set_maa_w_putki(10081) # p7
+set_yla_from_db(10084); set_maa_w_putki(10084) # p10
+# Jakokoski Kontiolahti 0703 p2:lle p2b:n yhd_maa plus p2:n putken pituus
+putki_yhd_temp[putki_yhd_temp$paikka_id == 10076, "yla"] <-
+  putki_yhd_temp[putki_yhd_temp$paikka_id == 41750, "yhd_maa"] +
+  putki_yhd_temp[putki_yhd_temp$paikka_id == 10076, "putki"]
+set_maa_w_putki(10076)
 
 # Hietajärvi Patvinsuo 0705 p1AM yläp tietokannasta, p1 identtiseksi p1AM kanssa
 set_yla_from_db(63979); set_maa_w_putki(63979) # p1AM
 set_yla_w_id(14363, from = 63979); set_maa_w_id(14363, from = 63979) # p1
 
-# ASEMIA
+
+# Rajamäki Karijoki 0801 p11b yläpää tietokannasta
+set_yla_from_db(42048); set_maa_w_putki(42048) # p11b
+
+
+# Kylänpää Laihia 0803 p2,p5,p10 yläpää tietokannasta
+set_yla_from_db(9755); set_maa_w_putki(9755) # p2
+set_yla_from_db(9758); set_maa_w_putki(9758) # p5
+set_yla_from_db(9763); set_maa_w_putki(9763) # p10
+# Kylänpää Laihia 0803 p1b, p1bAM, p6b, p6bAM, p8b, p8bAM yläpää yhd_yla
+putki_yhd_temp[putki_yhd_temp$paikka_id == 41995, "yla"] <- # p1b
+  putki_yhd_temp[putki_yhd_temp$paikka_id == 41995, "yhd_yla"]
+putki_yhd_temp[putki_yhd_temp$paikka_id == 41997, "yla"] <- # p6b
+  putki_yhd_temp[putki_yhd_temp$paikka_id == 41997, "yhd_yla"]
+putki_yhd_temp[putki_yhd_temp$paikka_id == 42002, "yla"] <- # p8b
+  putki_yhd_temp[putki_yhd_temp$paikka_id == 42002, "yhd_yla"]
+set_maa_w_putki(41995); set_maa_w_putki(41997); set_maa_w_putki(42002) # Grounds
+set_yla_w_id(88738, from = 41995); set_maa_w_id(88738, from = 41995) # p1bAM
+set_yla_w_id(80921, from = 41997); set_maa_w_id(80921, from = 41997) # p6bAM
+set_yla_w_id(80922, from = 42002); set_maa_w_id(80922, from = 42002) # p8bAM
+# Kylänpää Laihia 0803 p1,p6,p8,p3,p7,p9 yläpksi uuden putken yhd_maa+vanh putk pituus
+putki_yhd_temp[putki_yhd_temp$paikka_id == 9754, "yla"] <- # p1
+  putki_yhd_temp[putki_yhd_temp$paikka_id == 41995, "yhd_yla"] +
+  putki_yhd_temp[putki_yhd_temp$paikka_id == 9754, "putki"]
+set_maa_w_putki(9754)
+putki_yhd_temp[putki_yhd_temp$paikka_id == 9759, "yla"] <- # p6
+  putki_yhd_temp[putki_yhd_temp$paikka_id == 41997, "yhd_yla"] +
+  putki_yhd_temp[putki_yhd_temp$paikka_id == 9759, "putki"]
+set_maa_w_putki(9759)
+putki_yhd_temp[putki_yhd_temp$paikka_id == 9761, "yla"] <- # p8
+  putki_yhd_temp[putki_yhd_temp$paikka_id == 42002, "yhd_yla"] +
+  putki_yhd_temp[putki_yhd_temp$paikka_id == 9761, "putki"]
+set_maa_w_putki(9761)
+putki_yhd_temp[putki_yhd_temp$paikka_id == 9756, "yla"] <- # p3
+  putki_yhd_temp[putki_yhd_temp$paikka_id == 41996, "yhd_yla"] +
+  putki_yhd_temp[putki_yhd_temp$paikka_id == 9756, "putki"]
+set_maa_w_putki(9756)
+putki_yhd_temp[putki_yhd_temp$paikka_id == 9760, "yla"] <- # p7
+  putki_yhd_temp[putki_yhd_temp$paikka_id == 41999, "yhd_yla"] +
+  putki_yhd_temp[putki_yhd_temp$paikka_id == 9760, "putki"]
+set_maa_w_putki(9760)
+putki_yhd_temp[putki_yhd_temp$paikka_id == 9762, "yla"] <- # p9
+  putki_yhd_temp[putki_yhd_temp$paikka_id == 42003, "yhd_yla"] +
+  putki_yhd_temp[putki_yhd_temp$paikka_id == 9762, "putki"]
+set_maa_w_putki(9762)
+
+
+# Mutkala Joutsa 0901p1,p2,p3,p3AM,p4,p5,p5AM,p7,p8,p8AM,p9,p9AM,p10 yläp dbstä 
+set_yla_from_db(9647);  set_maa_w_putki(9647)  # p1
+set_yla_from_db(9648);  set_maa_w_putki(9648)  # p2
+set_yla_from_db(9649);  set_maa_w_putki(9649)  # p3
+set_yla_w_id(88351, from = 9649); set_maa_w_id(88351, from = 9649) # p3AM
+set_yla_from_db(9650);  set_maa_w_putki(9650)  # p4
+set_yla_from_db(9651);  set_maa_w_putki(9651)  # p5
+set_yla_w_id(88352, from = 9651); set_maa_w_id(88352, from = 9651) # p5AM
+set_yla_from_db(9653);  set_maa_w_putki(9653)  # p7
+set_yla_from_db(9654);  set_maa_w_putki(9654)  # p8
+set_yla_w_id(88353, from = 9654); set_maa_w_id(88353, from = 9654) # p8AM
+set_yla_from_db(9655);  set_maa_w_putki(9655)  # p9
+set_yla_w_id(88354, from = 9655); set_maa_w_id(88354, from = 9655) # p9AM
+set_yla_from_db(9656);  set_maa_w_putki(9656)  # p10
+
+# Vehkoo Multia 0902 p6b ja p6bAM yläpää putkikortista (163,09)
+putki_yhd_temp[putki_yhd_temp$paikka_id == 43289, "yla"] <- 163.09
+set_maa_w_putki(43289)
+set_yla_w_id(88295, from = 43289); set_maa_w_id(88295, from = 43289) # p6bAM
+
+# Äijälä Laukaa 0903p11/p11AM,p12/p12AM,p14/p14AM,p15/p15AM,p3,p9,p6,p13 ylä dbstä
+set_yla_from_db(10005); set_maa_w_putki(10005) # p11
+set_yla_w_id(82246, from = 10005); set_maa_w_id(82246, from = 10005) # p11AM
+set_yla_from_db(10006); set_maa_w_putki(10006) # p12
+set_yla_w_id(82247, from = 10006); set_maa_w_id(82247, from = 10006) # p12AM
+set_yla_from_db(10008); set_maa_w_putki(10008) # p14
+set_yla_w_id(82248, from = 10008); set_maa_w_id(82248, from = 10008) # p14AM
+set_yla_from_db(10009); set_maa_w_putki(10009) # p15
+set_yla_w_id(82249, from = 10009); set_maa_w_id(82249, from = 10009) # p15AM
+set_yla_from_db(10159); set_maa_w_putki(10159) # p3
+set_yla_from_db(9537);  set_maa_w_putki(9537)  # p9
+set_yla_from_db(9535);  set_maa_w_putki(9535)  # p6
+set_yla_from_db(10007); set_maa_w_putki(10007) # p13
 
 # Taikkomäki Karstula 0904 p10b ja p10bAM tietokannan mukaisiksi. ELY sus.
 set_yla_from_db(44421); set_maa_w_putki(44421) # p10b
 set_yla_w_id(82236, from = 44421); set_maa_w_id(82236, from = 44421) # p10bAM
+
+
+# Kälviä 1003 p6, p10 yläpää tietokannasta
+set_yla_from_db(9746); set_maa_w_putki(9746) # p6
+set_yla_from_db(9750); set_maa_w_putki(9750) # p10
+
+# Kolmisoppi 1201 p9b, p9bAM yläpää tietokannasta; p2 yläpää p2b:n yhd_maa+p2:n putki
+set_yla_from_db(44336); set_maa_w_putki(44336) # p9b
+set_yla_w_id(75654, from = 44336); set_maa_w_id(75654, from = 44336) # p9bAM
+putki_yhd_temp[putki_yhd_temp$paikka_id == 9785, "yla"] <- # p2
+  putki_yhd_temp[putki_yhd_temp$paikka_id == 44330, "yhd_maa"] +
+  putki_yhd_temp[putki_yhd_temp$paikka_id == 9785, "putki"]
+set_maa_w_putki(9785)
+
+
+# Lumiaho 1202 p1b yläpää DTM:stä
+set_yla_from_db(42113); set_maa_w_putki(42113)
+# Lumiaho 1202limni,limAM putket 106 cm kuten p11:ssa, p11 koord korjattiin limnin koordksi, jolloin yläp tulee samaksi kuin limnillä/limAM:llä
+putki_yhd_temp[putki_yhd_temp$paikka_id == 37921, "putki"] <- 1.06 
+putki_yhd_temp[putki_yhd_temp$paikka_id == 37921, "putki_source"] <- "DB(1202p11)"
+set_yla_from_dtm(37921); set_maa_w_putki(37921) # 1202limni
+set_yla_w_id(64028, from = 37921); set_maa_w_id(64028, from = 37921) #1202limAM
+set_yla_w_id(9961, from = 37921); set_maa_w_id(9961, from = 37921) #p11 (just in case)
+
+
+# Alakangas 1203 p10 ja p10b yläpäät tietokannasta
+set_yla_from_db(9570); set_maa_w_putki(9570) # p10
+set_yla_from_db(43427); set_maa_w_putki(43427) # p10b
+
+# Kullisuo 1204 p11 yläpää limnin yläpään mukaiseksi + koord korjattu vastaaviksi
+set_yla_w_id(9959, from = 37922); set_maa_w_putki(9959) # p11
+# limni / limAM putkipituus p11:n db perustuv putken mukaiseksi (ei vain arvioida 1m)
+putki_yhd_temp[putki_yhd_temp$paikka_id == 37922, "putki"] <- # limni
+  putki_yhd_temp[putki_yhd_temp$paikka_id == 9959, "putki"]
+putki_yhd_temp[putki_yhd_temp$paikka_id == 82270, "putki"] <- #limAM
+  putki_yhd_temp[putki_yhd_temp$paikka_id == 9959, "putki"]
+putki_yhd_temp[putki_yhd_temp$paikka_id == 37922, "putki_source"] <- "DB(1204p11)"
+putki_yhd_temp[putki_yhd_temp$paikka_id == 82270, "putki_source"] <- "DB(1204p11)"
+set_maa_w_putki(37922); set_maa_w_putki(82270)
+
+# Jokiniemi Pesiö 1209 p1,p1AM, p10, limni,limAM yläp 2000-luvun vaait mukaan
+
+
+# Jokiniemi Pesiö 1209 p2,p2AM, p4, p8,p8AM, p10 yläpäät tietokannasta
+set_yla_from_db(9939); set_maa_w_putki(9939) # p2
+set_yla_w_id(86021, from = 9939); set_maa_w_id(86021, from = 9939) # p2AM
+set_yla_from_db(9940); set_maa_w_putki(9940) # p4
+set_yla_from_db(9942); set_maa_w_putki(9942) # p8
+set_yla_w_id(86022, from = 9942); set_maa_w_id(86022, from = 9942) # p8AM
+set_yla_from_db(9944); set_maa_w_putki(9944) # p10
+
+
+# Könölä Tornio 1301p3, p4,limni,p5/p5b/p5bAM,p7/p7b/p7bAM,p8/p8AM yläpää db:stä
+set_yla_from_db(9810); set_maa_w_putki(9810) # p3
+set_yla_from_db(9716); set_maa_w_putki(9716) # p4
+set_yla_from_db(78408); set_maa_w_putki(78408) # limni
+set_yla_from_db(9717); set_maa_w_putki(9717) # p5
+set_yla_from_db(65120); set_maa_w_putki(65120) # p5b
+set_yla_w_id(82228, from = 65120); set_maa_w_id(82228, from = 65120) # p5bAM
+set_yla_from_db(9811); set_maa_w_putki(9811) # p7
+set_yla_from_db(65117); set_maa_w_putki(65117) # p7b
+set_yla_w_id(82229, from = 65117); set_maa_w_id(82229, from = 65117) # p7bAM
+set_yla_from_db(9812); set_maa_w_putki(9812) # p8
+set_yla_w_id(82230, from = 9812); set_maa_w_id(82230, from = 9812) # p8AM
+
+
+# Lautavaara 1302 p1, p3, p4, p10, p11 yläpää yhd_maa + putki
+putki_yhd_temp[putki_yhd_temp$paikka_id == 9705, "yla"] <- # p1
+  putki_yhd_temp[putki_yhd_temp$paikka_id == 9705, "yhd_maa"] +
+  putki_yhd_temp[putki_yhd_temp$paikka_id == 9705, "putki"]
+set_maa_w_putki(9705)
+putki_yhd_temp[putki_yhd_temp$paikka_id == 9707, "yla"] <- # p3
+  putki_yhd_temp[putki_yhd_temp$paikka_id == 9707, "yhd_maa"] +
+  putki_yhd_temp[putki_yhd_temp$paikka_id == 9707, "putki"]
+set_maa_w_putki(9707)
+putki_yhd_temp[putki_yhd_temp$paikka_id == 9708, "yla"] <- # p4
+  putki_yhd_temp[putki_yhd_temp$paikka_id == 9708, "yhd_maa"] +
+  putki_yhd_temp[putki_yhd_temp$paikka_id == 9708, "putki"]
+set_maa_w_putki(9708)
+putki_yhd_temp[putki_yhd_temp$paikka_id == 9714, "yla"] <- # p10
+  putki_yhd_temp[putki_yhd_temp$paikka_id == 9714, "yhd_maa"] +
+  putki_yhd_temp[putki_yhd_temp$paikka_id == 9714, "putki"]
+set_maa_w_putki(9714)
+putki_yhd_temp[putki_yhd_temp$paikka_id == 9715, "yla"] <- # p11
+  putki_yhd_temp[putki_yhd_temp$paikka_id == 9715, "yhd_maa"] +
+  putki_yhd_temp[putki_yhd_temp$paikka_id == 9715, "putki"]
+set_maa_w_putki(9715)
+# Lautavaara 1302 limni & limAM:lle p9:n yläpää (ja p9 putken pituus)
+set_yla_w_id(37846, from = 9713); set_maa_w_id(37846, from = 9713) # limni
+set_yla_w_id(64999, from = 9713); set_maa_w_id(64999, from = 9713) # limAM
+# Lautavaara 1302 p6b, p6bAM yläpää tietokannasta
+set_yla_from_db(46139); set_maa_w_putki(46139) # p6b
+set_yla_w_id(64996, from = 46139); set_maa_w_id(64996, from = 46139) # p6bAM
+# Lautavaara 1302 p8, p8b, p8bAM yläpää KM2:sta
+set_yla_from_km2(9712); set_maa_w_putki(9712) # p8
+set_yla_from_km2(46141); set_maa_w_putki(46141) # p8b
+set_yla_w_id(64998, from = 46141); set_maa_w_id(64998, from = 46141) # p8bAM
+
+
+# Nellim Inari 1306 p2 yläpää DTMstä
+set_yla_from_dtm(9827); set_maa_w_putki(9827) # p2
+
+
+# Pallas 1313 p5, p5AM, p6, p6AM yläpää tietokannasta
+set_yla_from_db(87140); set_maa_w_putki(87140) # p5
+set_yla_w_id(88402, from = 87140); set_maa_w_id(88402, from = 87140) # p5AM
+set_yla_from_db(87141); set_maa_w_putki(87141) # p6
+set_yla_w_id(88403, from = 87141); set_maa_w_id(88403, from = 87141) # p6AM
 
