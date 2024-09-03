@@ -6,6 +6,7 @@
 
 # Prepare and execute TIFF downloads:
 if (curl::has_internet()) {
+  message("Aloitettu kaikkien paikkojen KM2 latausten valmistelu.")
   lataustyot <- kaikki_paikat[, c("paikka_id","tunnus")]
   # Aloitetaan joka putkelle lataustyö, ja tallennetaan sen URL tauluun
   for (i in 1:nrow(kaikki_paikat)) {
@@ -17,8 +18,11 @@ if (curl::has_internet()) {
     lataustyot[i, "url"] <- pisteen_vastaus$links$href
     # Haetaan työn aloituksen status
     lataustyot[i, "status"] <- pisteen_vastaus$status
+    if (i %% 100) message("100:n paikan aineisto valmisteltu palvelimelle")
   }
   rm(i, pisteen_vastaus)
+  message("Kaikkien paikkojen KM2 lataukset valmisteltu.")
+  
   
   # Odotetaan että lataustyö on valmistunut palvelimella ennen kuin ladataan
   i <- 1 # Ladattavan indeksin alustaminen
