@@ -38,6 +38,8 @@ valmistele_2m_aineisto <- function(lon, lat, marginaali=USERCONF$loc_dtm_margin)
   # API avaimen määrittely
   req <- httr2::req_url_query(req,
                               `api-key` = check_key(D$secrets, "MML_avain.txt"))
+  req <- httr2::req_retry(req, max_tries=9, max_seconds=30, backoff= ~5)#Retry policy
+  
   # Pyynnön suorittaminen 
   vastaus <- httr2::req_perform(req)
   vastaus <- jsonlite::fromJSON(rawToChar(vastaus$body))
@@ -95,7 +97,7 @@ while (i <= nrow(lataustyot)) {
     
     # Jos työ ei ole valmis palvelimella, odotetaan 2 s
     if (vastaus$progress != 100 || vastaus$status %in% c("running", "accepted")) {
-      message(paste("Lataustyön valmistelu palvelimella kesken..."))
+      message("Lataustyön valmistelu palvelimella kesken...")
       message(paste0("Progress ", vastaus$progress, "/100"))
       Sys.sleep(2)
     } else {
@@ -131,7 +133,7 @@ while (i <= nrow(lataustyot)) {
     }
   }
 }
-rm(vastaus, file_url, tallennuspolku, req)
+rm(vastaus, file_url, tallennuspolku, req, lataustyot)
 message("KM2 elevation model data downloaded for reference points")
 } # End download section (internet connection condition)
 } # Skip downloads if all files found and download not forced
