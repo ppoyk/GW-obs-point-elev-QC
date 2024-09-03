@@ -38,7 +38,7 @@ valmistele_2m_aineisto <- function(lon, lat, marginaali=USERCONF$loc_dtm_margin)
   # API avaimen määrittely
   req <- httr2::req_url_query(req,
                               `api-key` = check_key(D$secrets, "MML_avain.txt"))
-  req <- httr2::req_retry(req, max_tries=9, max_seconds=30, backoff= ~5)#Retry policy
+  req <- httr2::req_retry(req, max_tries = 9, max_seconds = 30) #Retry policy
   
   # Pyynnön suorittaminen 
   vastaus <- httr2::req_perform(req)
