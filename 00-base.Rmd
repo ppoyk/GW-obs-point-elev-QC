@@ -1368,6 +1368,7 @@ putki_yhd_temp <- putki_yhd_temp[!putki_yhd_temp$PaikkaTyyppi_Id %in%
 link_am_man <- hae_PaikkaAutomaattiManuaali() # Fetch link table
 
 putki_yhd_temp_backup <- putki_yhd_temp # Back up the table before fixes
+# putki_yhd_temp_backup -> putki_yhd_temp
 
 # Pre-emptively set some known exceptions (Hardcoded fixes)
 hard_fixes <- tibble::tribble(
@@ -1569,7 +1570,9 @@ data.table::fwrite(
 
 # Write also the full resulting dataset. 
 # Includes values for places, which were not wanted in the large db update
-# (top elevs for ground frost pipes, )
+# (also extra info: ground frost pipes top elevs, etc. )
+putki_yhd_temp <- putki_yhd_temp[stringr::str_order(putki_yhd_temp$tunnus, numeric=T), ]
+putki_yhd_temp <- putki_yhd_temp[order(putki_yhd_temp$asema_tunnus), ]
 data.table::fwrite(putki_yhd_temp,
   check_dir(D$tulokset,"korkeudet","korkeudet_FULL_DATA.csv"),
   dec = ".", sep = ";", bom = T)
