@@ -1512,24 +1512,6 @@ rm(id1,id2, pai1,pai2)
 
 
 ```{r save-elevation-table}
-
-test <-
-  putki_yhd_trim[,c("paikka_id","asema_tunnus","asema_nimi","tunnus","PaikkaTyyppi_Id",
-                    "yla_db","putki","maa_verif","yla_verif")]
-test <- merge(test,
-              kaikki_paikat[,c("paikka_id","yhd_yla","KorkeusMaa","yhd_maa","dtm_elev","km2_elev")],
-              by = "paikka_id")
-test["dtm_yla"] <- test$dtm_elev + test$putki
-test["km2_yla"] <- test$km2_elev + test$putki
-
-test <- test[test$maa_verif %in% c("CHECKS_FAILED","NO_SOURCES") |
-               test$yla_verif %in% c("CHECKS_FAILED","BAD_DB?(NO_VERIF)","ELY_IN_DB?",p0("ELY±",l_ely,"m")), ]
-data.table::fwrite(test,
-  f.path("Miralle_huonot_ELY_korkeudet.csv"),
-  bom = T)
-rm(test)
-
-
 #### Save the collated pipe top and ground elevation file
 # Perform last cheks
 elevtbl_sanitycheck(putki_yhd_temp,
@@ -1551,7 +1533,7 @@ korkeudet_outfile <-
   korkeudet_outfile[stringr::str_order(korkeudet_outfile$tunnus, numeric = T), ]
 korkeudet_outfile <- korkeudet_outfile[order(korkeudet_outfile$asema_tunnus), ]
 # Warn of IDs which would be uploaded but are not included in the investigated tbl
-checked <- data.table::fread("Miralle_DRAFT_korkeudet_CHECKED.csv")$paikka_id
+checked <- data.table::fread(f.path(D$data,"Miralle_DRAFT_korkeudet_CHECKED.csv"))$paikka_id
 for (id in korkeudet_outfile$paikka_id) {
   if (!(id %in% checked)) warning("ID ",id," puuttuu tarkistettujen taulusta!")
 }; rm(checked)
@@ -1575,6 +1557,20 @@ putki_yhd_temp <- putki_yhd_temp[stringr::str_order(putki_yhd_temp$tunnus, numer
 putki_yhd_temp <- putki_yhd_temp[order(putki_yhd_temp$asema_tunnus), ]
 data.table::fwrite(putki_yhd_temp,
   check_dir(D$tulokset,"korkeudet","korkeudet_FULL_DATA.csv"),
+  dec = ".", sep = ";", bom = T)
+
+# Write also a table which includes all alternative ground / top elevs
+all_kork <-
+  merge(putki_yhd_temp,
+        kaikki_paikat[,c("paikka_id","yhd_yla","yhd_maa","dtm_elev","km2_elev")],
+        by = "paikka_id")
+all_kork["dtm_yla"] <- all_kork$dtm_elev + all_kork$putki 
+all_kork["km2_yla"] <- all_kork$km2_elev + all_kork$putki
+
+all_kork <- all_kork[stringr::str_order(all_kork$tunnus, numeric = T), ]
+all_kork <- all_kork[order(all_kork$asema_tunnus), ]
+data.table::fwrite(all_kork,
+  check_dir(D$tulokset,"korkeudet","korkeudet_FULLEST_DATA.csv"),
   dec = ".", sep = ";", bom = T)
 
 ```
