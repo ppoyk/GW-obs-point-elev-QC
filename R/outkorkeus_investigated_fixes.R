@@ -213,7 +213,7 @@ set_yla_from_db(10081); set_maa_w_putki(10081) # p7
 set_yla_from_db(10084); set_maa_w_putki(10084) # p10
 # Jakokoski Kontiolahti 0703 p2:lle p2b:n yhd_maa plus p2:n putken pituus
 putki_yhd_temp[putki_yhd_temp$paikka_id == 10076, "yla"] <-
-  putki_yhd_temp[putki_yhd_temp$paikka_id == 41750, "yhd_maa"] +
+  kaikki_paikat[kaikki_paikat$paikka_id == 41750, "yhd_maa"] +
   putki_yhd_temp[putki_yhd_temp$paikka_id == 10076, "putki"]
 set_maa_w_putki(10076)
 
@@ -232,38 +232,38 @@ set_yla_from_db(9758); set_maa_w_putki(9758) # p5
 set_yla_from_db(9763); set_maa_w_putki(9763) # p10
 # Kylänpää Laihia 0803 p1b, p1bAM, p6b, p6bAM, p8b, p8bAM yläpää yhd_yla
 putki_yhd_temp[putki_yhd_temp$paikka_id == 41995, "yla"] <- # p1b
-  putki_yhd_temp[putki_yhd_temp$paikka_id == 41995, "yhd_yla"]
+  kaikki_paikat[kaikki_paikat$paikka_id == 41995, "yhd_yla"]
 putki_yhd_temp[putki_yhd_temp$paikka_id == 41997, "yla"] <- # p6b
-  putki_yhd_temp[putki_yhd_temp$paikka_id == 41997, "yhd_yla"]
+  kaikki_paikat[kaikki_paikat$paikka_id == 41997, "yhd_yla"]
 putki_yhd_temp[putki_yhd_temp$paikka_id == 42002, "yla"] <- # p8b
-  putki_yhd_temp[putki_yhd_temp$paikka_id == 42002, "yhd_yla"]
+  kaikki_paikat[kaikki_paikat$paikka_id == 42002, "yhd_yla"]
 set_maa_w_putki(41995); set_maa_w_putki(41997); set_maa_w_putki(42002) # Grounds
 set_yla_w_id(88738, from = 41995); set_maa_w_id(88738, from = 41995) # p1bAM
 set_yla_w_id(80921, from = 41997); set_maa_w_id(80921, from = 41997) # p6bAM
 set_yla_w_id(80922, from = 42002); set_maa_w_id(80922, from = 42002) # p8bAM
 # Kylänpää Laihia 0803 p1,p6,p8,p3,p7,p9 yläpksi uuden putken yhd_maa+vanh putk pituus
 putki_yhd_temp[putki_yhd_temp$paikka_id == 9754, "yla"] <- # p1
-  putki_yhd_temp[putki_yhd_temp$paikka_id == 41995, "yhd_yla"] +
+  kaikki_paikat[kaikki_paikat$paikka_id == 41995, "yhd_maa"] +
   putki_yhd_temp[putki_yhd_temp$paikka_id == 9754, "putki"]
 set_maa_w_putki(9754)
 putki_yhd_temp[putki_yhd_temp$paikka_id == 9759, "yla"] <- # p6
-  putki_yhd_temp[putki_yhd_temp$paikka_id == 41997, "yhd_yla"] +
+  kaikki_paikat[kaikki_paikat$paikka_id == 41997, "yhd_maa"] +
   putki_yhd_temp[putki_yhd_temp$paikka_id == 9759, "putki"]
 set_maa_w_putki(9759)
 putki_yhd_temp[putki_yhd_temp$paikka_id == 9761, "yla"] <- # p8
-  putki_yhd_temp[putki_yhd_temp$paikka_id == 42002, "yhd_yla"] +
+  kaikki_paikat[kaikki_paikat$paikka_id == 42002, "yhd_maa"] +
   putki_yhd_temp[putki_yhd_temp$paikka_id == 9761, "putki"]
 set_maa_w_putki(9761)
 putki_yhd_temp[putki_yhd_temp$paikka_id == 9756, "yla"] <- # p3
-  putki_yhd_temp[putki_yhd_temp$paikka_id == 41996, "yhd_yla"] +
+  kaikki_paikat[kaikki_paikat$paikka_id == 41996, "yhd_maa"] +
   putki_yhd_temp[putki_yhd_temp$paikka_id == 9756, "putki"]
 set_maa_w_putki(9756)
 putki_yhd_temp[putki_yhd_temp$paikka_id == 9760, "yla"] <- # p7
-  putki_yhd_temp[putki_yhd_temp$paikka_id == 41999, "yhd_yla"] +
+  kaikki_paikat[kaikki_paikat$paikka_id == 41999, "yhd_maa"] +
   putki_yhd_temp[putki_yhd_temp$paikka_id == 9760, "putki"]
 set_maa_w_putki(9760)
 putki_yhd_temp[putki_yhd_temp$paikka_id == 9762, "yla"] <- # p9
-  putki_yhd_temp[putki_yhd_temp$paikka_id == 42003, "yhd_yla"] +
+  kaikki_paikat[kaikki_paikat$paikka_id == 42003, "yhd_maa"] +
   putki_yhd_temp[putki_yhd_temp$paikka_id == 9762, "putki"]
 set_maa_w_putki(9762)
 
@@ -310,11 +310,18 @@ set_yla_w_id(82236, from = 44421); set_maa_w_id(82236, from = 44421) # p10bAM
 set_yla_from_db(9746); set_maa_w_putki(9746) # p6
 set_yla_from_db(9750); set_maa_w_putki(9750) # p10
 
+
+# Rokua 1110 Saari viimeisimmän vaaitustiedon mukaiseksi (132.42 (+/-) 0.019)
+# 88692 # Saari
+# NOT APPLIED YET! Rokua whole station dropped (outkorkeus_investigated_omits.R)
+
+
+
 # Kolmisoppi 1201 p9b, p9bAM yläpää tietokannasta; p2 yläpää p2b:n yhd_maa+p2:n putki
 set_yla_from_db(44336); set_maa_w_putki(44336) # p9b
 set_yla_w_id(75654, from = 44336); set_maa_w_id(75654, from = 44336) # p9bAM
 putki_yhd_temp[putki_yhd_temp$paikka_id == 9785, "yla"] <- # p2
-  putki_yhd_temp[putki_yhd_temp$paikka_id == 44330, "yhd_maa"] +
+  kaikki_paikat[kaikki_paikat$paikka_id == 44330, "yhd_maa"] +
   putki_yhd_temp[putki_yhd_temp$paikka_id == 9785, "putki"]
 set_maa_w_putki(9785)
 
@@ -379,23 +386,23 @@ set_yla_w_id(82230, from = 9812); set_maa_w_id(82230, from = 9812) # p8AM
 
 # Lautavaara 1302 p1, p3, p4, p10, p11 yläpää yhd_maa + putki
 putki_yhd_temp[putki_yhd_temp$paikka_id == 9705, "yla"] <- # p1
-  putki_yhd_temp[putki_yhd_temp$paikka_id == 9705, "yhd_maa"] +
+  kaikki_paikat[kaikki_paikat$paikka_id == 9705, "yhd_maa"] +
   putki_yhd_temp[putki_yhd_temp$paikka_id == 9705, "putki"]
 set_maa_w_putki(9705)
 putki_yhd_temp[putki_yhd_temp$paikka_id == 9707, "yla"] <- # p3
-  putki_yhd_temp[putki_yhd_temp$paikka_id == 9707, "yhd_maa"] +
+  kaikki_paikat[kaikki_paikat$paikka_id == 9707, "yhd_maa"] +
   putki_yhd_temp[putki_yhd_temp$paikka_id == 9707, "putki"]
 set_maa_w_putki(9707)
 putki_yhd_temp[putki_yhd_temp$paikka_id == 9708, "yla"] <- # p4
-  putki_yhd_temp[putki_yhd_temp$paikka_id == 9708, "yhd_maa"] +
+  kaikki_paikat[kaikki_paikat$paikka_id == 9708, "yhd_maa"] +
   putki_yhd_temp[putki_yhd_temp$paikka_id == 9708, "putki"]
 set_maa_w_putki(9708)
 putki_yhd_temp[putki_yhd_temp$paikka_id == 9714, "yla"] <- # p10
-  putki_yhd_temp[putki_yhd_temp$paikka_id == 9714, "yhd_maa"] +
+  kaikki_paikat[kaikki_paikat$paikka_id == 9714, "yhd_maa"] +
   putki_yhd_temp[putki_yhd_temp$paikka_id == 9714, "putki"]
 set_maa_w_putki(9714)
 putki_yhd_temp[putki_yhd_temp$paikka_id == 9715, "yla"] <- # p11
-  putki_yhd_temp[putki_yhd_temp$paikka_id == 9715, "yhd_maa"] +
+  kaikki_paikat[kaikki_paikat$paikka_id == 9715, "yhd_maa"] +
   putki_yhd_temp[putki_yhd_temp$paikka_id == 9715, "putki"]
 set_maa_w_putki(9715)
 # Lautavaara 1302 limni & limAM:lle p9:n yläpää (ja p9 putken pituus)
