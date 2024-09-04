@@ -9,12 +9,12 @@
 # Function to drop a place from the table based on id.
 drop_id <- function(ids) {
   putki_yhd_trim <-
-    putki_yhd_trim[!putki_yhd_trim$paikka_id %in% ids, ]
+    putki_yhd_trim[!(putki_yhd_trim$paikka_id %in% ids), ]
 }
 # Function to drop places from the table based on the station identifier
 drop_station <- function(as_t) {
   putki_yhd_trim <-
-    putki_yhd_trim[!putki_yhd_trim$asema_tunnus %in% as_t, ]
+    putki_yhd_trim[!(putki_yhd_trim$asema_tunnus %in% as_t), ]
 }
 
 # koko Keräkankare 0106, linkitysten oikeellisuus epäselvää. UUDELYyn yhteys
@@ -51,4 +51,6 @@ drop_station("0604")
 drop_station("0806")
 
 
+# Rokua (had to be dropped, technical difficulties with manipulating data)
+drop_station("1110")
 
