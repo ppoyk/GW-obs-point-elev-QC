@@ -9,6 +9,7 @@
 # Function to set the maa with current pipetop minus the pipe vis.len 
 # Option to set the pipe len manually.
 set_maa_w_putki <- function(id, putki = NULL) {
+  if (!(id %in% putki_yhd_temp$paikka_id)) stop("Korjattavaa paikkaId:tä ei ole")
   if (is.null(putki)) {
     putki_yhd_temp[putki_yhd_temp$paikka_id == id, "maa"] <- 
       putki_yhd_temp[putki_yhd_temp$paikka_id == id,"yla"] -
@@ -26,6 +27,7 @@ set_maa_w_putki <- function(id, putki = NULL) {
 
 # Function to set the top elev from db. Sources accordingly.
 set_yla_from_db <- function(id) {
+  if (!(id %in% putki_yhd_temp$paikka_id)) stop("Korjattavaa paikkaId:tä ei ole")
   putki_yhd_temp[putki_yhd_temp$paikka_id == id, "yla"] <-
     putki_yhd_temp[putki_yhd_temp$paikka_id == id, "yla_db"]
   putki_yhd_temp[putki_yhd_temp$paikka_id == id, "yla_source"] <- "DB"
@@ -33,6 +35,7 @@ set_yla_from_db <- function(id) {
 }
 # Function to set the top elev from DTM elev + pipe. Sources accordingly.
 set_yla_from_dtm <- function(id) {
+  if (!(id %in% putki_yhd_temp$paikka_id)) stop("Korjattavaa paikkaId:tä ei ole")
   putki_yhd_temp[putki_yhd_temp$paikka_id == id, "yla"] <-
     kaikki_paikat[kaikki_paikat$paikka_id == id, "dtm_elev"] +
     putki_yhd_temp[putki_yhd_temp$paikka_id == id, "putki"]
@@ -42,6 +45,7 @@ set_yla_from_dtm <- function(id) {
 }
 # Function to set the top elev from KM2 elev + pipe. Sources accordingly.
 set_yla_from_km2 <- function(id) {
+  if (!(id %in% putki_yhd_temp$paikka_id)) stop("Korjattavaa paikkaId:tä ei ole")
   putki_yhd_temp[putki_yhd_temp$paikka_id == id, "yla"] <-
     kaikki_paikat[kaikki_paikat$paikka_id == id, "km2_elev"] +
     putki_yhd_temp[putki_yhd_temp$paikka_id == id, "putki"]
@@ -52,12 +56,14 @@ set_yla_from_km2 <- function(id) {
 
 # Set top elev or ground elev from another pipe. Copy also elev sources.
 set_yla_w_id <- function(id, from) {
+  if (!all(c(id,from) %in% putki_yhd_temp$paikka_id))stop("PaikkaId:tä ei löydy")
   putki_yhd_temp[putki_yhd_temp$paikka_id == id, "yla"] <-
     putki_yhd_temp[putki_yhd_temp$paikka_id == from, "yla"]
   putki_yhd_temp[putki_yhd_temp$paikka_id == id, c("yla_source","yla_verif")] <-
     putki_yhd_temp[putki_yhd_temp$paikka_id == from, c("yla_source","yla_verif")]
 }
 set_maa_w_id <- function(id, from) {
+  if (!all(c(id,from) %in% putki_yhd_temp$paikka_id))stop("PaikkaId:tä ei löydy")
   putki_yhd_temp[putki_yhd_temp$paikka_id == id, "maa"] <-
     putki_yhd_temp[putki_yhd_temp$paikka_id == from, "maa"]
   putki_yhd_temp[putki_yhd_temp$paikka_id == id, c("maa_source","maa_verif")] <-
@@ -66,6 +72,7 @@ set_maa_w_id <- function(id, from) {
 
 # Function to copy all relevant sources from one place to another
 copy_sources <- function(id, from) {
+  if (!all(c(id,from) %in% putki_yhd_temp$paikka_id))stop("PaikkaId:tä ei löydy")
   putki_yhd_temp[putki_yhd_temp$paikka_id == id,
                  c("maa_source","maa_verif","yla_source","yla_verif")] <-
     putki_yhd_temp[putki_yhd_temp$paikka_id == from, 
