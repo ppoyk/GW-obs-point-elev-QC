@@ -1367,7 +1367,8 @@ putki_yhd_temp <- putki_yhd_temp[!putki_yhd_temp$PaikkaTyyppi_Id %in%
 #### Ensure that pairs of manual and autom. pipes have the same elev values
 link_am_man <- hae_PaikkaAutomaattiManuaali() # Fetch link table
 
-putki_yhd_temp_backup <- putki_yhd_temp
+putki_yhd_temp_backup <- putki_yhd_temp # Back up the table before fixes
+
 # Pre-emptively set some known exceptions (Hardcoded fixes)
 hard_fixes <- tibble::tribble(
   ~val_from, ~val_to,
@@ -1471,7 +1472,7 @@ rm(a_id,m_id,p_a,p_m, yla_src_prio,maa_src_prio, src, diff_lim)
 suppressWarnings(rm(new_maa, new_yla))#might be missing(fresh vars ensured above)
 
 
-#### Set some elevations in the results manually based on more detailed inspections
+### Set some elevations in the results manually based on more detailed inspections
 source(file.path(root,"R","outkorkeus_investigated_fixes.R"))
 
 
@@ -1505,12 +1506,6 @@ for (i in seq_len(nrow(link_am_man))) {
   }
 }
 rm(id1,id2, pai1,pai2)
-
-# TODO drop asemat joissa epäilyttäviä linkityksiä
-
-# Ei käsittelyyn mukaan vielä ELYjen mittausten vertailua 2022 tilanteeseen, eikä
-# niiden tapausten käsittelyä, joissa ELYjen mittaukset toleranssien ulkopuolella muista malleista
-# Kaikki ELYn mittaukset joissa sekä yläpää että maanpinta täsmää tietokantaan, pudotetaan pois
 
 ```
 
