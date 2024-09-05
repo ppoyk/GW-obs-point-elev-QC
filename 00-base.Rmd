@@ -1112,6 +1112,10 @@ l_km2 <- sqrt(
            probs = c(.025,.975), na.rm = T) ^ 2)
 l_km2[[1]] <- l_km2[[1]] * -1 # Lower boundary returned back to negative
 
+# OVERWRITE WITH CONSTANT VALUES DETERMINED EARLIER (Pöykkö, 2024)
+# (some coords have improved/changed in db, affecting the calculated coord-caused uncert)
+l_dtm <- c("2.5%" = -0.407, "97.5%" = 0.407)
+l_km2 <- c("2.5%" = -0.390, "97.5%" = 0.556)
 
 # As the model errors were calculated by "true - model", the same order is
 # required when checking whether the difference is within the confidence interval
@@ -1309,11 +1313,6 @@ for (i in 1:nrow(kaikki_paikat)) {
 rm(yla_db,KorkeusMaa, yhd_yla,yhd_maa,yhd_source, Vt_Prec, dtm_elev,km2_elev,
    putki,putki_source, maa,maa_source,maa_verif, yla,yla_source,yla_verif)
 
-
-# If only very new places are missing tops, drop them
-# (verifying elevs is focused on older pipes, elevs of recently founded pipes trusted)
-if (all(putki_yhd_temp[is.na(putki_yhd_temp$yla),"paikka_id"] > 90000))
-  putki_yhd_temp <- putki_yhd_temp[!is.na(putki_yhd_temp$yla), ]
 
 
 # Perform sanity checks on the data
