@@ -351,6 +351,13 @@ putki_yhd_temp[putki_yhd_temp$paikka_id == 82270, "putki"] <- #limAM
 putki_yhd_temp[putki_yhd_temp$paikka_id == 37922, "putki_source"] <- "DB(1204p11)"
 putki_yhd_temp[putki_yhd_temp$paikka_id == 82270, "putki_source"] <- "DB(1204p11)"
 set_maa_w_putki(37922); set_maa_w_putki(82270) # limni/limAM ground
+# 1204p7b poikkeama: kork.mallien raj.arv. muuttuneet, otto dbstä, jotta p7 vert.kelp
+set_yla_from_db(44339); set_maa_w_putki(44339) # p7b
+set_yla_w_id(64023, from = 44339); set_maa_w_id(64023, from = 44339) # p7bAM
+# 1204p9 ja p9b poikkeama: molemmille yläpää KM2 avulla. Parantaa parin yhteneväisyyttä
+set_yla_from_km2(9691); set_maa_w_putki(9691) # p9
+set_yla_from_km2(44341); set_maa_w_putki(44341) # p9b
+set_yla_w_id(64024, from = 44341); set_maa_w_id(64024, from = 44341) # p9bAM
 
 
 # Jokiniemi Pesiö 1209p1/p1AM, p10/limni/limAM yläp 2000-luv vaait mukaan (p10=limni)
@@ -368,6 +375,21 @@ set_yla_from_db(9940); set_maa_w_putki(9940) # p4
 set_yla_from_db(9942); set_maa_w_putki(9942) # p8
 set_yla_w_id(86022, from = 9942); set_maa_w_id(86022, from = 9942) # p8AM
 set_yla_from_db(9944); set_maa_w_putki(9944) # p10
+
+
+# Kolkonkangas-Kinkelinkangas 1210 p1, p2, p3, p4, p5, p6 & AMs from DTM
+set_yla_from_dtm(78106); set_maa_w_putki(78106) # 78106 p1
+set_yla_w_id(53796, from = 78106); set_maa_w_id(53796, from = 78106) # 53796 p1AM
+set_yla_from_dtm(78109); set_maa_w_putki(78109) # 78109 p2
+set_yla_w_id(53800, from = 78109); set_maa_w_id(53800, from = 78109) # 53800 p2AM
+set_yla_from_dtm(78113); set_maa_w_putki(78113) # 78113 p3
+set_yla_w_id(51927, from = 78113); set_maa_w_id(51927, from = 78113) # 51927 p3AM
+set_yla_from_dtm(78114); set_maa_w_putki(78114) # 78114 p4
+set_yla_w_id(51928, from = 78114); set_maa_w_id(51928, from = 78114) # 51928 p4AM
+set_yla_from_dtm(78115); set_maa_w_putki(78115) # 78115 p5
+set_yla_w_id(53801, from = 78115); set_maa_w_id(53801, from = 78115) # 53801 p5AM
+set_yla_from_dtm(78116); set_maa_w_putki(78116) # 78116 p6
+set_yla_w_id(53802, from = 78116); set_maa_w_id(53802, from = 78116) # 53802 p6AM
 
 
 # Könölä Tornio 1301 p3, p4,limni,p5/p5b/p5bAM,p7/p7b/p7bAM,p8/p8AM yläpää db:stä
