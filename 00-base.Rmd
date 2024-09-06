@@ -1493,8 +1493,14 @@ putki_yhd_trim <- putki_yhd_trim[!putki_yhd_trim$PaikkaTyyppi_Id %in% "Lumikeppi
 for (i in seq_len(nrow(link_am_man))) {
   id1 <- link_am_man[i, 1]
   id2 <- link_am_man[i, 2]
-  if (!(id1 %in% kaikki_paikat$paikka_id && id2 %in% kaikki_paikat$paikka_id)) {
-      warning(paste("Paikka_id:itä",id1,id2,"ei löydy paikkataulusta!"))
+  if (!(id1 %in% kaikki_paikat$paikka_id)) {
+    warning(paste("Paikka_id:tä",id1,"ei löydy paikkataulusta!"))
+  }
+  if (!(id2 %in% kaikki_paikat$paikka_id)) {
+    warning(paste("Paikka_id:tä",id2,"ei löydy paikkataulusta!"))
+  }
+  if (all(!(c(id1,id2) %in% kaikki_paikat$paikka_id))) {
+    warning("Pari ohitettu")
   } else {
     pai1 <- kaikki_paikat[kaikki_paikat$paikka_id == id1, ]
     pai2 <- kaikki_paikat[kaikki_paikat$paikka_id == id2, ]
