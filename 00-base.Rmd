@@ -1479,6 +1479,9 @@ source(file.path(root,"R","outkorkeus_investigated_fixes.R"))
 ### Drop some places from the results.
 # Create a table copy, where all drops happen
 putki_yhd_trim <- putki_yhd_temp
+# Create a table where all dropped will be stored
+putki_yhd_dropped  <- putki_yhd_temp[0,]
+
 # Do id/station drops. Based on manual investigations. Only affects putki_yhd_trim
 # (Some of the now-dropped will be included later in an appendix upload)
 source(file.path(root,"R","outkorkeus_investigated_omits.R"))
@@ -1500,7 +1503,7 @@ for (i in seq_len(nrow(link_am_man))) {
     warning(paste("Paikka_id:tä",id2,"ei löydy paikkataulusta!"))
   }
   if (all(!(c(id1,id2) %in% kaikki_paikat$paikka_id))) {
-    warning("Pari ohitettu")
+    warning("Putkipari ohitettu")
   } else {
     pai1 <- kaikki_paikat[kaikki_paikat$paikka_id == id1, ]
     pai2 <- kaikki_paikat[kaikki_paikat$paikka_id == id2, ]
@@ -1555,6 +1558,7 @@ data.table::fwrite(
   check_dir(D$tulokset,"korkeudet","korkeudet_tietokantaan_DRAFT.csv"),
   dec = ".", sep = ";", bom = T)
 
+
 # Write also the full resulting dataset. 
 # Includes values for places, which were not wanted in the large db update
 # (also extra info: ground frost pipes top elevs, etc. )
@@ -1577,6 +1581,32 @@ all_kork <- all_kork[order(all_kork$asema_tunnus), ]
 data.table::fwrite(all_kork,
   check_dir(D$tulokset,"korkeudet","korkeudet_FULLEST_DATA.csv"),
   dec = ".", sep = ";", bom = T)
+
+
+# Write the dropped places in a file (both db upload compliant and full infos)
+putki_yhd_dropped <- putki_yhd_dropped[stringr::str_order(putki_yhd_dropped$tunnus, numeric=T), ]
+putki_yhd_dropped <- putki_yhd_dropped[order(putki_yhd_dropped$asema_tunnus), ]
+korkeus_dropped_out <-
+  putki_yhd_dropped[ ,c("paikka_id","tunnus","asema_tunnus","asema_nimi",
+                     "PaikkaTyyppi_Id","yla","yla_source","yla_verif",
+                     "maa","maa_source","maa_verif","KM2_laatu")]
+korkeus_dropped_out <- korkeus_dropped_out[!korkeus_dropped_out$PaikkaTyyppi_Id %in% "Lumikeppi",]
+data.table::fwrite(korkeus_dropped_out,
+  check_dir(D$tulokset,"korkeudet","korkeudet_tietokantaan_DROPPED.csv"),
+  dec = ".", sep = ";", bom = T)
+
+all_dropped <-
+  merge(putki_yhd_dropped,
+        kaikki_paikat[,c("paikka_id","yhd_yla","yhd_maa","dtm_elev","km2_elev")],
+        by = "paikka_id")
+all_dropped["dtm_yla"] <- all_dropped$dtm_elev + all_dropped$putki 
+all_dropped["km2_yla"] <- all_dropped$km2_elev + all_dropped$putki
+all_dropped <- all_dropped[stringr::str_order(all_dropped$tunnus, numeric = T), ]
+all_dropped <- all_dropped[order(all_dropped$asema_tunnus), ]
+data.table::fwrite(all_dropped,
+  check_dir(D$tulokset,"korkeudet","korkeudet_DROPPED_FULL_DATA.csv"),
+  dec = ".", sep = ";", bom = T)
+
 
 ```
 

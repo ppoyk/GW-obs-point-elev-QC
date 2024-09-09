@@ -10,11 +10,15 @@
 drop_id <- function(ids) {
   putki_yhd_trim <<-
     putki_yhd_trim[!(putki_yhd_trim$paikka_id %in% ids), ]
+  putki_yhd_dropped <<- 
+    rbind(putki_yhd_dropped, putki_yhd_temp[putki_yhd_temp$paikka_id %in% ids, ])
 }
 # Function to drop places from the table based on the station identifier
 drop_station <- function(as_t) {
   putki_yhd_trim <<-
     putki_yhd_trim[!(putki_yhd_trim$asema_tunnus %in% as_t), ]
+  putki_yhd_dropped <<-
+    rbind(putki_yhd_dropped, putki_yhd_temp[putki_yhd_temp$asema_tunnus %in% as_t, ])
 }
 
 # koko Keräkankare 0106, linkitysten oikeellisuus epäselvää. UUDELYyn yhteys
