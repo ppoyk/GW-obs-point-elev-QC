@@ -22,6 +22,12 @@ for (col in names(kenttamittaukset)) {
 }
 rm(col)
 
+
+# Massa-ajo nro.2. Jätetään mukaan vain aiemmin pois jätetyt asemat
+kenttamittaukset <- kenttamittaukset[
+  kenttamittaukset$asema_tunnus %in% mas_aj_2_asemat]
+
+
 # Do not import the col with bad values (related to some comments within the file)
 kenttamittaukset[["BAD"]] <- NULL
 

@@ -70,7 +70,7 @@ D <- list(
   c        = file.path(root, "R","cache")
 )
 
-# Muut tärkeä muuttujat:
+# Muut tärkeät muuttujat:
 # Koordinaattireferenssisysteemin (crs) koodi, joka käytössä Suomessa
 # ja käytettävissä aineistoissa, EPSG:3067 = ETRS-TM35FIN 
 crs = 3067 
@@ -117,6 +117,14 @@ if (USERCONF$pakota_lataus_asematiedot || !file.exists(dir_asemataulu)) {
 }
 rm(dir_asemataulu)
 
+# Massa-ajo nro.2. Jätetään mukaan vain aiemmin pois jätetyt asemat
+mas_aj_2_asemat <- c("0104", "0106", # Tullinkangas, Keräkankare
+                     "0110", "0202", # Pernaja-Koskenkylä, Perniö
+                     "0501", "0504", "0508", # Pertunmaa, Särkelä, Raikuunkangas
+                     "0604", "1110", "1301") #  Akonjoki, Rokua, Könölä
+asemataulu <- asemataulu[asemataulu$tunnus %in% mas_aj_2_asemat, ]
+
+
 # Draw all monitoring stations, before dropping ones with no pipes
 as_kartta <- piirra_asemakartta(asemataulu,
   file.path(D$tulokset,"all_stations_map.png"),
@@ -153,7 +161,7 @@ if (USERCONF$pakota_lataus_putkitiedot || !file.exists(dir_putket)) {
 # 1st load location type table (required for setting factor levels if local file is used)
 PaikkaTyyppi_path <- file.path(D$data,"PaikkaTyyppi.csv") # Define path
 if (USERCONF$pakota_lataus_paikkatiedot || file.exists(PaikkaTyyppi_path)) {
-    PaikkaTyyppi <- read.csv(PaikkaTyyppi_path) # Read from file if found or forced
+    PaikkaTyyppi <- read.csv(PaikkaTyyppi_path, fileEncoding = "UTF-8-BOM") # Read from file if found or forced
 } else {
   # If file not found, query from db, and save to disk for future use.
   PaikkaTyyppi <- DBI::dbGetQuery(
@@ -434,6 +442,8 @@ kaikki_paikat["yhd_yla"] <- kaikki_paikat$yhd_maa + kaikki_paikat$yhd_putki
 ```
 
 ```{r valmistele-uudet-koordinaatit-tietokantaan-vientiin}
+if (FALSE) { # skip coord checks on 2nd db upload pass
+  
 # Perform checks on how much the coordinates would change if uploaded to database
 koord_upd_dir <- check_dir(D$tulokset,"koordinaattipaivitykset",ensure=T)
 #### EROT KONSULTTIEN PAIKOISSA ############################################
@@ -580,6 +590,7 @@ db_batch[grepl("^.*[rs]\\d{1,2}$",db_batch$tunnus), "yhd_lat"] <-
 data.table::fwrite(na.omit(db_batch), # Save file
   file.path(koord_upd_dir,"koordinaattipaivitykset_final.csv"), bom = T)
 rm(db_batch, koord_upd_dir)
+}
 
 ```
 
@@ -1342,7 +1353,7 @@ putki_yhd_temp <- merge(
 
 # Remove top elevs for locations other than wells and monitoring pipes
 for (i in 1:nrow(putki_yhd_temp)) {
-  # Check that type is NOT monitoring pipe (incl. some moistre meters) or well
+  # Check that type is NOT monitoring pipe (incl. some moisture meters) or well
   if (!putki_yhd_temp[i, "PaikkaTyyppi_Id"] %in%
       c("Havaintoputki","Kaivo","Maankosteusmittari")) {
     # Set NA to all cols relating to "pipe" top value
