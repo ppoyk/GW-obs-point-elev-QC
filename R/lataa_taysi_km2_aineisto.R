@@ -18,7 +18,7 @@ if (curl::has_internet()) {
     lataustyot[i, "url"] <- pisteen_vastaus$links$href
     # Haetaan työn aloituksen status
     lataustyot[i, "status"] <- pisteen_vastaus$status
-    if (i %% 100) message("100:n paikan aineisto valmisteltu palvelimelle")
+    if (i %% 100 == 0) message("100:n paikan aineisto valmisteltu palvelimelle")
   }
   rm(i, pisteen_vastaus)
   message("Kaikkien paikkojen KM2 lataukset valmisteltu.")
