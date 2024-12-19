@@ -98,22 +98,27 @@ for (f in raj_tied) {
 rm(f, raj_tied)
 
 
-# Drop duplicated files of the same mapsheet. Leave only 1 in newest year folder  
+# Drop duplicated files of the same mapsheet. Leave only the newest scan  
 if(anyDuplicated(basename(lasfiles))) {
   for (fi in unique(basename(lasfiles))) {
-    if (sum(grepl(fi, lasfiles)) > 1) { # If file occurs more than once
+    if (sum(grepl(fi, lasfiles)) > 1) { # If the file occurs more than once
       dupfiles <- lasfiles[grepl(fi, lasfiles)] # Get dupfile full paths
-      # Get file years from the path (root year folder)
-      fileyears <- as.numeric(sapply(dupfiles, substr,
-                                     start = nchar(D$las)+2, stop = nchar(D$las)+5))
-      maxyear <- max(fileyears)
-      # Drop files which are older than newest of the duplicate files
-      dropped_files <- dupfiles[which(fileyears < maxyear)]
-      # If more than 1 file remains, halt. More checks needed on what to scan
-      if (length(dropped_files) < length(dupfiles) - 1) 
-        stop("Too many files with same filename from the newest year: ",dupfiles)
-      else
-        lasfiles <- lasfiles[!lasfiles %in% dropped_files] # Drop files
+      
+      # Get scanning dates from the headers of duplicated files
+      dupfiledates <-
+        unlist(lapply(dupfiles,
+                      function (fi) {
+                        h <- lidR::readLASheader(fi)
+                        yd <- h@PHB[c("File Creation Year","File Creation Day of Year")]
+                        return(lubridate::parse_date_time(paste0(yd[[1]],yd[[2]]), "%Y%j"))
+                        }
+                      ))
+      
+      # Designate all but the newest file as dropped
+      # (Compared w/ maths due to unlist())
+      dropped_files <- dupfiles[which(dupfiledates < max(dupfiledates))]
+      
+      lasfiles <- lasfiles[!lasfiles %in% dropped_files] # Drop duplicate files
     }
   }
   rm(fi, dupfiles,fileyears,maxyear,dropped_files)
@@ -131,7 +136,7 @@ ktlg <- lidR::readLAScatalog(folder = lasfiles,
 # "fault points", "high vegetation", jotta kevennetään datakuormaa
 # Lisätietoa https://www.maanmittauslaitos.fi/kartat-ja-paikkatieto/asiantuntevalle-kayttajalle/tuotekuvaukset/laser-scanning-data-5-p 
                              filter = "-drop_class 12 16 7 15 17 5 -drop_overlap",
-                             progress = F) 
+                             progress = T) 
 # Catalog consists of separate files, not forming unified area.
 lidR::opt_independent_files(ktlg) <- TRUE
 message("Kaikkien havaintopaikkojen LAS-aineiston katalogi muodostettu")
