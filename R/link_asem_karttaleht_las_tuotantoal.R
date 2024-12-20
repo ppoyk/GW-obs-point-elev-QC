@@ -14,16 +14,12 @@
 
 # Alueiden kuvaustilanne 03/2024. Seuraavilta aineiston tuotantoalueilta ei ole aineistoa saatavilla.
 # Aluejako ei vielä kata koko Suomea, joten niiden ulkopuolella olevat on merkitty "ei_aluetta".
-ei_ole_5p <- c("Kilpisjärvi","Ala-Kilpisjarvi","Kaaresuvanto",
-               "Ivalo","Raja-Jooseppi","Lisma","Vuotso",
-               "Kittilä","Jeesiö","Martti","Tuntsa","Saija","Meltaus",
-               "Rovajarvi","Salla","Muurola","Narkaus","Kemi","Kuusamo",
-               "Soivio","Taivalkoski","Ylikiiminki","Suomussalmi","Pyhäjoki",
-               "Muhos","Hyrynsalmi","Kuhmo","Vieremä","Veteli",
-               "Närpiö","Seinäjoki","Saarijarvi","Joensuu","Varkaus",
-               "Rääkkylä","Kitee","Ruovesi","Jämsä","Sastamala","Kouvola",
-               "Uusikaupunki","Kumlinge","Karkkila","ei_aluetta")
-# Lisäksi Loviisa ja Hanko vain osittain saatavilla.
+ei_ole_5p <- c("Ala-Kilpisjarvi","Lisma","Muonio","Vuotso","Kittilä",
+               "Tuntsa","Rovajarvi","Muurola","Kuusamo",
+               "Taivalkoski","Muhos","Kuhmo",
+               "Seinäjoki","Rääkkylä","Ruovesi","Kouvola",
+               "Kumlinge","Parainen","ei_aluetta")
+# Lisäksi Hanko vain osittain saatavilla.
 
 # Asemien linkitys karttalehtiin ja 5p-aineiston tuotantoalueisiin
 linkitykset_5p <- data.frame(
@@ -126,10 +122,10 @@ linkitykset_5p <- data.frame(
            33,  "T4431G", "Rovajarvi",
            56,  "T5241F, T5241E", "Salla",
            57,  "U4343D", "Pelkosenniemi",
-           16,  "V4123F", "ei_aluetta",
+           16,  "V4123F", "Muonio",
            17,  "W5132A, W5131B, W5131D, W5132C", "Nellim",
            893, "W4333A", "ei_aluetta",
-           907, "V4134A", "ei_aluetta",
+           907, "V4134A", "Muonio",
            718, "M3442B, N3331A, N3331C, M3442D", "Parkano",
            719, "L3441F, L3441D, L3441E, L3441C", "Loimaa",
            639, "M3314G, M3314E, M3314F, M3313H, M3332A, M3331B, M3331A", "Loimaa",
