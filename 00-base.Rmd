@@ -308,7 +308,7 @@ if (file.exists(file.path(D$data, "kenttamittaukset+idt.csv"))) {
 # discarded here. This is based on background investigations outside of this
 # project, and are coded manually.
 #Yli 50m muutos jota ei vielä ole viety tietokantaan, ja siirtymän ei ole todettu olevan OK.
-huonot <- c(9985, 7836, 7851, 7856,
+huonot <- c(7836, 7851, 7856,
             7811, 56597, 43975, 7727, 7725, 43463)
 # Drop bad
 kenttamittaukset <- kenttamittaukset[!kenttamittaukset$paikka_id %in% huonot, ]
