@@ -26,8 +26,8 @@ karttalehdet <- unique(trimws(unlist(strsplit(linkitykset_5p$karttalehti, ",")))
 # Loop yearly folders starting from newest until data from all map sheets is found
 # (5p/m2 data only available starting from 2019, warning issued at the end of loop)
 lasfiles <- NULL # Init looping var
-# Init starting year (latest data available only from previous year)
-year <- as.numeric(format(Sys.Date(),"%Y")) - 1
+# Init starting year (years data available from November onwards)
+year <- data.table::year(Sys.Date() - as.difftime(330, units = "days"))
 # Start looping through yearly folders
 while (year > 2018) {
   
@@ -121,7 +121,7 @@ if(anyDuplicated(basename(lasfiles))) {
       lasfiles <- lasfiles[!lasfiles %in% dropped_files] # Drop duplicate files
     }
   }
-  rm(fi, dupfiles,fileyears,maxyear,dropped_files)
+  rm(fi, dupfiles, dupfiledates, dropped_files)
 }
 # Check if duplicate removal successful
 if (anyDuplicated(basename(lasfiles)))
