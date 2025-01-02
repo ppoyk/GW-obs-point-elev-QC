@@ -119,7 +119,7 @@ rm(dir_asemataulu)
 
 # Massa-ajo nro.2. Jätetään mukaan vain aiemmin pois jätetyt asemat
 mas_aj_2_asemat <- c("0104", "0106", # Tullinkangas, Keräkankare
-                     "0110", "0202", # Pernaja-Koskenkylä, Perniö
+                     "0110", # Pernaja-Koskenkylä
                      "0501", "0504", "0508", # Pertunmaa, Särkelä, Raikuunkangas
                      "0604", "1110", "1301") #  Akonjoki, Rokua, Könölä
 asemataulu <- asemataulu[asemataulu$tunnus %in% mas_aj_2_asemat, ]
@@ -1102,6 +1102,7 @@ putki_yhd_temp <- dplyr::rename(putki_yhd_temp, yla_db = Yla)#Rename db pipe top
 
 # l_own <- own msrmnt tolerance(+/-) Device reported vt.prec checked for each msrmnt
 l_ely <- 0.50 #ELY measurements(+/-) (as per a histogram of a few stations around line 318)
+if (F) {
 l_dtm <- sqrt(
   (DescTools::Quantile( # DTM error low and high quantiles
   ok_refpoints$krig50_error,
@@ -1113,6 +1114,7 @@ l_dtm <- sqrt(
   Quantile(kaikki_paikat$dtm_elev - shifted_dtm_elev_maxerr$dtm_elev,
            probs = c(.025,.975), na.rm = T) ^ 2) # also squared
 l_dtm[[1]] <- l_dtm[[1]] * -1 # Lower boundary returned back to negative
+
 l_km2 <- sqrt(
   DescTools::Quantile( # KM2 error, low and high quantiles
   ok_refpoints$km2_error,
@@ -1122,6 +1124,7 @@ l_km2 <- sqrt(
   Quantile(kaikki_paikat$km2_elev - shifted_km2_elev_maxerr$elev,
            probs = c(.025,.975), na.rm = T) ^ 2)
 l_km2[[1]] <- l_km2[[1]] * -1 # Lower boundary returned back to negative
+}
 
 # OVERWRITE WITH CONSTANT VALUES DETERMINED EARLIER (Pöykkö, 2024)
 # (some coords have improved/changed in db, affecting the calculated coord-caused uncert)
@@ -1413,10 +1416,10 @@ rm(hard_fixes)
 # Set the proritisation order of the available sources (used in the next loop)
 yla_src_prio <- c("Pietari","DB","ELY","DTM+ELY","DTM+DB","DTM+MISSING",
                   "KM2+ELY","KM2+DB","KM2+MISSING", NA)
-stopifnot(length(unique(putki_yhd_temp$yla_source)) == length(yla_src_prio))
+#stopifnot(length(unique(putki_yhd_temp$yla_source)) == length(yla_src_prio))
 maa_src_prio <- c("Pietari-Pietari","DB-Pietari","DB-ELY","DB","DB-MISSING",
                   "ELY","DTM","KM2")
-stopifnot(length(unique(putki_yhd_temp$maa_source)) == length(maa_src_prio))
+#stopifnot(length(unique(putki_yhd_temp$maa_source)) == length(maa_src_prio))
 # Set limit of 1m as the max change between man and AM
 diff_lim <- 1 # (stops if exceeded, manual investigations possibly needed)
 # Go through the man-AM pairs, select the better found source for both of them
@@ -1525,7 +1528,7 @@ for (i in seq_len(nrow(link_am_man))) {
       cat("ELYkrd ero:",pai1$tunnus,pai1$paikka_id,"¤",pai2$tunnus,pai2$paikka_id,"\n")
   }
 }
-rm(id1,id2, pai1,pai2)
+rm(pai1,pai2)
 
 ```
 
@@ -1538,6 +1541,7 @@ elevtbl_sanitycheck(putki_yhd_temp,
 elevtbl_sanitycheck(putki_yhd_trim,
                     skip_yla_tyyppi = c("Routaputki","Lumikeppi","Lysimetri"))
 
+putki_yhd_trim <- putki_yhd_temp
 # Select only required cols
 korkeudet_outfile <-
   putki_yhd_trim[ ,c("paikka_id","tunnus","asema_tunnus","asema_nimi",

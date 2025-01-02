@@ -7,14 +7,14 @@ USERCONF <- list(
   ### Tietokanta:
   # Halutaanko ladata uudet tiedot pohjavesitietokannasta, riippumatta siitä onko
   # tiedosto olemassa levyllä?
-  pakota_lataus_asematiedot  = T, # Pohjavesiasemien tiedoille
-  pakota_lataus_putkitiedot  = T, # Pelkille putkille
-  pakota_lataus_paikkatiedot = T, # Tiedot kaikille havaintopaikkatyypeille
+  pakota_lataus_asematiedot  = F, # Pohjavesiasemien tiedoille
+  pakota_lataus_putkitiedot  = F, # Pelkille putkille
+  pakota_lataus_paikkatiedot = F, # Tiedot kaikille havaintopaikkatyypeille
   
   ### MML:n 2x2m tarkkuuden maankorkeusaineisto (KM2):
   # Halutaanko ladata maanpintadata Maanmittauslaitoksen sivuilta, riippumatta
   # siitä onko aineisto jo olemassa levyllä?
-  pakota_lataus_KM2 = T, # Download takes a while, up to 1h
+  pakota_lataus_KM2 = F, # Download takes a while, up to 1h
   
   ### Aineiston rajaamisen marginaalit latauksessa 
   # Asetetaan marginaali ladattavalle 2x2m maankorkeusaineistolle metreinä.
